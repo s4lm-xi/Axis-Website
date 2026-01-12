@@ -1,1 +1,962 @@
-<h1> shit will be added soon</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Work - AXIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #00ff88;
+            --green-glow: #00ff8850;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --light-bg: #ffffff;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --card-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 3rem;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-green), #00cc6a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.1em;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .nav-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-logo:hover::after {
+            width: 100%;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            position: relative;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary-green);
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            width: 100%;
+        }
+
+        /* Hero Section - Target Specs */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 80px;
+            padding: 4rem 2rem;
+        }
+
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%);
+            z-index: 1;
+        }
+
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            animation: gridMove 20s linear infinite;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center top;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 10s infinite;
+            box-shadow: 0 0 10px var(--green-glow);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            max-width: 1200px;
+        }
+
+        .hero-label {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50px;
+            color: var(--primary-green);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-green) 50%, var(--text-primary) 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out 0.2s both, gradientShift 8s ease infinite;
+            letter-spacing: 0.02em;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            animation: fadeInUp 1s ease-out 0.4s both;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.8;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Target Specs Grid */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .spec-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spec-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(0, 255, 136, 0.15));
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .spec-card:hover::before {
+            opacity: 1;
+        }
+
+        .spec-card:hover {
+            transform: translateY(-15px);
+            border-color: var(--primary-green);
+            box-shadow: 0 30px 80px rgba(0, 255, 136, 0.4);
+        }
+
+        .spec-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--primary-green), #00cc6a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px var(--green-glow);
+        }
+
+        .spec-icon svg {
+            width: 35px;
+            height: 35px;
+            stroke: var(--dark-bg);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .spec-value {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-green), #00cc6a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .spec-label {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .spec-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Glove Showcase Section */
+        .showcase-section {
+            padding: 8rem 2rem;
+            background: var(--darker-bg);
+            position: relative;
+        }
+
+        .showcase-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1000px;
+            height: 1000px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50px;
+            color: var(--primary-green);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text-primary), var(--primary-green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .glove-showcase {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+            border-radius: 30px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .glove-showcase::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 136, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .glove-showcase:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 30px 80px rgba(0, 255, 136, 0.4);
+            transform: scale(1.02);
+        }
+
+        .glove-placeholder {
+            font-size: 2rem;
+            color: var(--primary-green);
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            opacity: 0.8;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* Components Section */
+        .components-section {
+            padding: 8rem 2rem;
+            background: var(--dark-bg);
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .component-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 255, 136, 0.03));
+            border-radius: 25px;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(0, 255, 136, 0.15));
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 1;
+        }
+
+        .component-card:hover::before {
+            opacity: 1;
+        }
+
+        .component-card:hover {
+            transform: translateY(-15px);
+            border-color: var(--primary-green);
+            box-shadow: 0 30px 80px rgba(0, 255, 136, 0.3);
+        }
+
+        .component-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+            position: relative;
+        }
+
+        .component-image::before {
+            font-size: 1rem;
+            color: var(--primary-green);
+            opacity: 0.3;
+            letter-spacing: 0.2em;
+        }
+
+        .component-content {
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .component-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .component-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .component-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--primary-green);
+            border-radius: 20px;
+            color: var(--primary-green);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 8rem 2rem;
+            background: var(--darker-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            padding: 2.5rem;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.3);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-green), #00cc6a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px var(--green-glow);
+        }
+
+        .feature-icon svg {
+            width: 30px;
+            height: 30px;
+            stroke: var(--dark-bg);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-menu {
+                gap: 1.5rem;
+            }
+
+            .nav-link {
+                font-size: 0.85rem;
+            }
+
+            .hero-title {
+                font-size: 3rem;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+
+            .specs-grid,
+            .components-grid,
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+            <img src="assets/logo-axis.png" style="width: 20%; height: auto;">
+
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="team.html" class="nav-link">Team</a></li>
+                <li><a href="contact.html" class="nav-link">Contact Us</a></li>
+                <li><a href="future.html" class="nav-link active">Future Work</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section - Target Specifications -->
+    <section class="hero">
+        <div class="hero-background"></div>
+        <div class="grid-background"></div>
+        <div class="particles" id="particles"></div>
+        <div class="hero-content">
+            <div class="hero-label">Next Generation</div>
+            <h1 class="hero-title">The Future of AXIS</h1>
+            <p class="hero-subtitle">In the future design, we plan to use better hardware and more optimized AI. Below are some of the goals we aim to achieve.</p>
+            
+            <div class="specs-grid">
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <span class="spec-value">500+</span>
+                    <div class="spec-label">Gestures</div>
+                    <p class="spec-description">Extended vocabulary coverage</p>
+                </div>
+
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <span class="spec-value">&lt;200ms</span>
+                    <div class="spec-label">Latency</div>
+                    <p class="spec-description">Real-time translation speed</p>
+                </div>
+
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <span class="spec-value">Compact</span>
+                    <div class="spec-label">Form Factor</div>
+                    <p class="spec-description">Suitable for all hand sizes</p>
+                </div>
+
+                <div class="spec-card">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <span class="spec-value">+95%</span>
+                    <div class="spec-label">Accuracy</div>
+                    <p class="spec-description">Precise gesture recognition</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Glove Showcase Section -->
+    <section class="showcase-section">
+        <div class="container reveal">
+            <div class="section-header">
+                <span class="section-label">Vision</span>
+                <h2 class="section-title">Next-Gen Design</h2>
+                <p class="section-subtitle">A revolutionary approach to wearable AI technology, combining ergonomic design with powerful processing capabilities</p>
+            </div>
+            
+            <div class="glove-showcase">
+                <div class="glove-placeholder">
+
+                    <img src="assets/future_glove.png" style="width: 120%;">
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Components Section -->
+    <section class="components-section">
+        <div class="container reveal">
+            <div class="section-header">
+                <span class="section-label">Hardware</span>
+                <h2 class="section-title">Advanced Components</h2>
+                <p class="section-subtitle">State-of-the-art sensors and processors for unparalleled accuracy and performance</p>
+            </div>
+            
+            <div class="components-grid">
+                <div class="component-card">
+                    <div class="component-image">
+
+                        <img src="assets/firebeetle.png" style="width: 80%;">
+
+                    </div>
+                    <div class="component-content">
+                        <h3 class="component-title">FireBeetle 2 ESP32-E</h3>
+                        <p class="component-description">Ultra-low power consumption microcontroller with advanced wireless connectivity. Features enhanced processing power for real-time AI inference while maintaining exceptional battery efficiency.</p>
+                        <span class="component-badge">Next-Gen Processor</span>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <div class="component-image">
+
+                        <img src="assets/mpu.png" style="width: 80%;">
+
+                    </div>
+                    <div class="component-content">
+                        <h3 class="component-title">MPU-6500</h3>
+                        <p class="component-description">High-precision 6-axis motion tracking sensor combining 3-axis gyroscope and 3-axis accelerometer. Provides accurate hand orientation and movement data for gesture recognition.</p>
+                        <span class="component-badge">Motion Tracking</span>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <div class="component-image">
+
+                        <img src="assets/flex_sensor.png" style="width: 80%;">
+                    
+                    </div>
+                    <div class="component-content">
+                        <h3 class="component-title">Advanced Flex Sensors</h3>
+                        <p class="component-description">Modern high-precision flex sensors with enhanced durability and accuracy. Captures subtle finger movements with exceptional resolution for detailed gesture recognition and natural interaction.</p>
+                        <span class="component-badge">High Precision</span>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <div class="component-image">
+
+
+                        <img src="assets/emg.png" style="width: 80%;">
+
+                    </div>
+                    <div class="component-content">
+                        <h3 class="component-title">EMG Sensors</h3>
+                        <p class="component-description">Electromyography sensors detect muscle electrical activity, enabling prediction of intended gestures before movement completion. Adds an extra layer of accuracy and responsiveness to the system.</p>
+                        <span class="component-badge">Predictive AI</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container reveal">
+            <div class="section-header">
+                <span class="section-label">Advantages</span>
+                <h2 class="section-title">Performance Enhancements</h2>
+                <p class="section-subtitle">Significant improvements across all key metrics</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="16 12 12 8 8 12"/>
+                            <line x1="12" y1="16" x2="12" y2="8"/>
+                        </svg>
+                    </div>
+                    <h3>Highly Optimized</h3>
+                    <p>Streamlined architecture with optimized algorithms reduces processing overhead while increasing recognition accuracy through efficient use of computational resources.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3>Energy Efficient</h3>
+                    <p>Advanced power management extends battery life significantly. Smart sleep modes and efficient sensor polling minimize energy consumption without sacrificing performance.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <h3>Maintained Accuracy</h3>
+                    <p>Despite reduced power consumption, advanced sensor fusion and machine learning models ensure consistent 95%+ accuracy across all gestures and usage conditions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                    <h3>Modular Design</h3>
+                    <p>Component architecture allows for easy upgrades and maintenance. Individual sensors can be replaced without affecting the entire system, ensuring longevity.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3>Universal Fit</h3>
+                    <p>Ergonomic design with adjustable straps accommodates all hand sizes comfortably. Lightweight construction ensures all-day wearability without fatigue.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3>Enhanced Durability</h3>
+                    <p>Robust construction with water-resistant materials protects against daily wear and environmental factors. Designed to withstand intensive use over extended periods.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Smooth scroll reveal animation
+        const reveals = document.querySelectorAll('.reveal');
+        
+        function checkReveal() {
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveal.getBoundingClientRect().top;
+                const elementVisible = 120;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    reveal.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', checkReveal);
+        checkReveal();
+
+        // Parallax effect
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-background');
+            const particles = document.querySelector('.particles');
+            if (hero && scrolled < window.innerHeight) {
+                hero.style.transform = `translateY(${scrolled * 0.4}px)`;
+                if (particles) {
+                    particles.style.transform = `translateY(${scrolled * 0.2}px)`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
