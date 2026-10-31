@@ -1,878 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-
+<!doctype html>
+<html lang="en" class="splash">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AXIS</title>
-<meta name="description" content="AXIS builds practical AI products and delivers custom AI solutions for businesses and organizations. Engineered in Bahrain."/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --green:#0F3D2E;
-  --green-deep:#0A2B20;
-  --green-soft:#EAF1EE;
-  --ink:#0B0F0D;
-  --body:#4B5550;
-  --gray:#F6F7F6;
-  --line:rgba(11,15,13,.09);
-  --line-dark:rgba(255,255,255,.12);
-  --white:#FFFFFF;
-  --r-lg:20px;--r-md:14px;
-  --maxw:1180px;
-  --ease:cubic-bezier(.22,1,.36,1);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--white);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.03em;line-height:1.1;font-weight:600}
-a{color:inherit;text-decoration:none}
-img{display:block;max-width:100%;height:auto}
-button{font-family:inherit}
-:focus-visible{outline:2px solid var(--green);outline-offset:3px}
-::selection{background:var(--green);color:#fff}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.w{max-width:var(--maxw);margin:0 auto;padding:0 28px}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.72rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--green)}
-.eyebrow::before{content:'';width:22px;height:1px;background:var(--green)}
-.on-dark .eyebrow{color:#8FBFA9}
-.on-dark .eyebrow::before{background:#8FBFA9}
-
-.btn{position:relative;display:inline-flex;align-items:center;gap:9px;font-family:'Sora';font-weight:600;font-size:.92rem;padding:14px 28px;border-radius:100px;cursor:pointer;border:none;overflow:hidden;transition:transform .35s var(--ease),box-shadow .35s var(--ease),background .3s,color .3s;will-change:transform}
-.btn .arr{transition:transform .3s var(--ease)}
-.btn:hover .arr{transform:translateX(4px)}
-.btn-primary{background:var(--green);color:#fff}
-.btn-primary:hover{background:var(--green-deep);box-shadow:0 12px 32px rgba(15,61,46,.28)}
-.btn-ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
-.btn-ghost:hover{box-shadow:inset 0 0 0 1.5px var(--green);color:var(--green)}
-.btn-light{background:#fff;color:var(--green)}
-.btn-light:hover{box-shadow:0 12px 32px rgba(0,0,0,.25)}
-
-#loader{position:fixed;inset:0;z-index:1000;background:var(--green);display:flex;align-items:center;justify-content:center;transition:transform .8s var(--ease);transform-origin:top}
-#loader.done{transform:scaleY(0)}
-#loader .lg{display:flex;overflow:hidden}
-#loader .lg span{font-family:'Sora';font-weight:700;font-size:clamp(2.4rem,8vw,4rem);letter-spacing:.22em;color:#fff;transform:translateY(110%);animation:lup .7s var(--ease) forwards}
-#loader .lg span:nth-child(2){animation-delay:.06s}
-#loader .lg span:nth-child(3){animation-delay:.12s}
-#loader .lg span:nth-child(4){animation-delay:.18s}
-@keyframes lup{to{transform:translateY(0)}}
-
-header{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
-header.scrolled{background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border-color:var(--line)}
-.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
-.logo{display:flex;align-items:center}
-.logo img{height:28px;width:auto;display:block}
-.nav-links{display:flex;align-items:center;gap:34px}
-.nav-links a:not(.btn){position:relative;font-size:.88rem;font-weight:500;color:var(--body);padding:4px 0;transition:color .2s}
-.nav-links a:not(.btn)::after{content:'';position:absolute;left:0;bottom:0;width:100%;height:1.5px;background:var(--green);transform:scaleX(0);transform-origin:right;transition:transform .35s var(--ease)}
-.nav-links a:not(.btn):hover{color:var(--ink)}
-.nav-links a:not(.btn):hover::after,.nav-links a.active::after{transform:scaleX(1);transform-origin:left}
-.nav-links .btn{padding:10px 22px;font-size:.85rem}
-.burger{display:none;width:40px;height:40px;background:none;border:0;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-.burger span{display:block;width:22px;height:1.8px;background:var(--ink);border-radius:2px;transition:transform .35s var(--ease),opacity .25s}
-.burger.open span:nth-child(1){transform:translateY(7.8px) rotate(45deg)}
-.burger.open span:nth-child(2){opacity:0}
-.burger.open span:nth-child(3){transform:translateY(-7.8px) rotate(-45deg)}
-.mobile-menu{display:none;position:fixed;inset:72px 0 auto 0;z-index:190;background:#fff;border-bottom:1px solid var(--line);padding:12px 28px 28px;flex-direction:column;transform:translateY(-8px);opacity:0;pointer-events:none;transition:transform .35s var(--ease),opacity .3s;max-height:calc(100vh - 72px);overflow-y:auto}
-.mobile-menu.open{transform:none;opacity:1;pointer-events:auto}
-.mobile-menu a{padding:15px 0;font-family:'Sora';font-weight:500;font-size:1.05rem;border-bottom:1px solid var(--line)}
-.mobile-menu a:last-child{border:0;margin-top:14px}
-
-.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:150px 0 60px;overflow:hidden}
-#net{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.hero-glow{position:absolute;top:-20%;right:-12%;width:60vw;height:60vw;max-width:820px;max-height:820px;border-radius:50%;background:radial-gradient(circle,rgba(15,61,46,.07),transparent 65%);pointer-events:none;animation:drift 14s ease-in-out infinite alternate}
-@keyframes drift{to{transform:translate(-4%,6%) scale(1.06)}}
-.hero-inner{position:relative;z-index:2;max-width:820px}
-.hero h1{font-size:clamp(2.5rem,6.2vw,4.8rem);font-weight:700;color:var(--ink);margin:26px 0 24px}
-.hero h1 .accent{color:var(--green)}
-.hero h1 .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
-.hero h1 .wr span{display:inline-block;transform:translateY(110%);animation:wup .9s var(--ease) forwards;animation-delay:calc(var(--d) * 1ms + 700ms)}
-@keyframes wup{to{transform:translateY(0)}}
-.hero p.lead{font-size:1.13rem;color:var(--body);max-width:34em;margin-bottom:34px;line-height:1.7}
-.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
-.hero-caps{position:relative;z-index:2;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:64px;border-top:1px solid var(--line);padding-top:26px;font-size:.86rem;color:var(--body);font-weight:500}
-.hero-caps .dot{width:4px;height:4px;border-radius:50%;background:var(--line);flex:none}
-
-section{padding:110px 0;position:relative}
-.sec-head{max-width:640px;margin-bottom:64px}
-.sec-head h2{font-size:clamp(1.9rem,3.8vw,2.9rem);margin:20px 0 18px;text-wrap:balance}
-.sec-head p{color:var(--body);font-size:1.04rem;line-height:1.7;text-wrap:pretty}
-.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
-.sec-head.center .eyebrow::before{display:none}
-.dark{background:var(--green-deep);color:#fff}
-.dark .sec-head h2{color:#fff}
-.dark .sec-head p{color:rgba(255,255,255,.6)}
-.soft{background:var(--gray)}
-
-.about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:80px;align-items:start}
-.about-big{font-family:'Sora';font-size:clamp(1.4rem,2.9vw,2.2rem);font-weight:500;letter-spacing:-.02em;line-height:1.35;color:var(--ink);text-wrap:pretty}
-.about-big strong{color:var(--green);font-weight:600}
-.about-side p{color:var(--body);margin-bottom:20px;line-height:1.75;font-size:.99rem}
-.about-marks{display:flex;gap:36px;margin-top:34px;flex-wrap:wrap}
-.amark .k{font-family:'Sora';font-weight:600;color:var(--ink);font-size:.95rem;margin-bottom:3px}
-.amark .v{font-size:.83rem;color:var(--body)}
-
-.svc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.svc{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:28px 22px;transition:transform .4s var(--ease),box-shadow .4s var(--ease),border-color .3s;overflow:hidden}
-.svc::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
-.svc:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(11,15,13,.08);border-color:transparent}
-.svc:hover::before{transform:scaleX(1)}
-.svc-ic{width:42px;height:42px;border-radius:11px;background:var(--green-soft);display:grid;place-items:center;color:var(--green);margin-bottom:34px;transition:background .3s,color .3s}
-.svc:hover .svc-ic{background:var(--green);color:#fff}
-.svc-ic svg{width:20px;height:20px}
-.svc h3{font-size:.98rem;font-weight:600;margin-bottom:7px}
-.svc p{font-size:.83rem;color:var(--body);line-height:1.55}
-
-.prod-tag{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:7px 15px;border-radius:100px;background:var(--green-soft);color:var(--green)}
-.prod-tag.dark-tag{background:rgba(255,255,255,.1);color:#9ED0B8}
-.prod-tag .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.prod-tag .dot.pulse{animation:pulse 1.8s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
-
-.turj{background:var(--green);border-radius:28px;overflow:hidden;color:#fff;position:relative}
-.turj-top{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:70px 70px 50px}
-.turj-info .ar{font-size:2.6rem;font-weight:700;font-family:'Sora';letter-spacing:-.02em;margin:18px 0 6px}
-.turj-info .ar-s{color:#9ED0B8;font-size:1.05rem;margin-bottom:20px;display:block}
-.turj-info p{color:rgba(255,255,255,.72);line-height:1.75;font-size:1rem;max-width:30em;margin-bottom:30px}
-.turj-chips{display:flex;flex-wrap:wrap;gap:9px}
-.chip{font-size:.78rem;font-weight:500;padding:8px 15px;border-radius:100px;border:1px solid var(--line-dark);color:rgba(255,255,255,.85);background:rgba(255,255,255,.05)}
-.turj-visual{position:relative;display:flex;justify-content:center;padding:20px 0}
-.turj-visual .ring{position:absolute;inset:0;margin:auto;width:82%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.08);animation:spin 40s linear infinite}
-.turj-visual .ring.r2{width:64%;animation-duration:28s;animation-direction:reverse}
-@keyframes spin{to{transform:rotate(360deg)}}
-.turj-photo{position:relative;z-index:1;width:min(240px,68%);aspect-ratio:3376/6000;border-radius:24px;overflow:hidden;box-shadow:0 30px 50px rgba(0,0,0,.4);transition:transform .6s var(--ease);background:rgba(255,255,255,.05)}
-.turj-photo img{width:100%;height:100%;object-fit:cover;object-position:top center}
-.turj-visual:hover .turj-photo{transform:translateY(-8px) rotate(-1.5deg)}
-.turj-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-dark)}
-.tstat{padding:32px 70px 34px;border-right:1px solid var(--line-dark)}
-.tstat:last-child{border-right:0}
-.tstat .n{font-family:'Sora';font-weight:700;font-size:1.9rem;color:#fff}
-.tstat .n em{font-style:normal;color:#9ED0B8}
-.tstat .d{font-size:.8rem;color:rgba(255,255,255,.5);margin-top:3px}
-
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-.detail-card{background:var(--gray);border-radius:var(--r-lg);padding:44px;overflow:hidden;position:relative;transition:box-shadow .4s var(--ease)}
-.detail-card:hover{box-shadow:0 20px 50px rgba(11,15,13,.07)}
-.detail-card h3{font-size:1.25rem;margin-bottom:12px}
-.detail-card>p{font-size:.94rem;color:var(--body);line-height:1.7;max-width:34em}
-.eng-list{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;margin-top:26px}
-.eng-item{display:flex;align-items:center;gap:12px;font-size:.88rem;font-weight:500;color:var(--ink)}
-.eng-ico{width:40px;height:40px;border-radius:10px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;flex:none}
-.eng-ico svg{width:16px;height:16px}
-.eng-thumb{width:40px;height:40px;border-radius:10px;object-fit:cover;flex:none;box-shadow:0 2px 6px rgba(11,15,13,.14)}
-.lang-visual{margin-top:30px;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:22px}
-.lang-badge{display:flex;align-items:center;gap:16px;font-family:'Sora';font-weight:700;font-size:2rem;color:var(--ink);letter-spacing:-.02em}
-.lang-badge .arrow{color:var(--green);font-size:1.3rem}
-.wave{display:flex;align-items:flex-end;gap:5px;height:38px}
-.wave span{display:block;width:5px;border-radius:3px;background:var(--green);opacity:.55;transform-origin:bottom center;animation:wavePulse 1.6s ease-in-out infinite}
-@keyframes wavePulse{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
-.wave span:nth-child(1){height:14px;animation-delay:0s}
-.wave span:nth-child(2){height:26px;animation-delay:.12s}
-.wave span:nth-child(3){height:38px;animation-delay:.24s}
-.wave span:nth-child(4){height:20px;animation-delay:.36s}
-.wave span:nth-child(5){height:32px;animation-delay:.48s}
-.wave span:nth-child(6){height:16px;animation-delay:.6s}
-.wave span:nth-child(7){height:28px;animation-delay:.72s}
-
-.tbl-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--line);margin-top:16px}
-table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem;background:#fff}
-th,td{padding:16px 24px;text-align:center;border-bottom:1px solid var(--line)}
-tr:last-child td,tr:last-child th{border-bottom:0}
-thead th{font-family:'Sora';font-weight:600;font-size:.85rem;color:var(--body);background:var(--gray)}
-thead th.us{background:var(--green);color:#fff}
-thead th:first-child{text-align:left}
-tbody th{text-align:left;font-weight:500;color:var(--ink)}
-td.us{background:var(--green-soft);font-weight:600;color:var(--green)}
-.y{color:var(--green);font-weight:700}
-.no{color:#B23535;font-weight:700}
-
-.harees{margin-top:16px;background:var(--ink);border-radius:28px;color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;overflow:hidden;position:relative}
-.harees-info{padding:70px 0 70px 70px}
-.harees-info h3{font-size:clamp(1.7rem,3vw,2.4rem);margin:20px 0 6px;color:#fff}
-.harees-info .ar-s{color:#9ED0B8;font-size:1.05rem;display:block;margin-bottom:22px}
-.harees-info p{color:rgba(255,255,255,.65);line-height:1.75;font-size:.99rem;max-width:30em;margin-bottom:28px}
-.harees-uses{display:flex;flex-wrap:wrap;gap:9px}
-.harees-visual{position:relative;height:100%;min-height:420px}
-#orb{position:absolute;inset:0;width:100%;height:100%}
-@media(max-width:900px){.harees-visual{min-height:280px}}
-
-.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--line)}
-.why{background:#fff;padding:38px 30px;display:flex;flex-direction:column;gap:10px;transition:background .3s}
-.why:hover{background:var(--green-soft)}
-.why .idx{font-family:'Sora';font-size:.72rem;font-weight:600;letter-spacing:.16em;color:var(--green)}
-.why h3{font-size:1.02rem}
-.why p{font-size:.86rem;color:var(--body);line-height:1.6}
-
-.mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.mv{border-radius:var(--r-lg);padding:56px 52px;position:relative;overflow:hidden}
-.mv.m{background:var(--green);color:#fff}
-.mv.v{background:var(--gray)}
-.mv .tag{font-size:.7rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;margin-bottom:26px;display:block}
-.mv.m .tag{color:#9ED0B8}
-.mv.v .tag{color:var(--green)}
-.mv h3{font-family:'Sora';font-size:clamp(1.2rem,2.2vw,1.65rem);font-weight:500;line-height:1.42;letter-spacing:-.02em}
-.mv.m h3{color:#fff}
-.mv p{margin-top:18px;font-size:.94rem;line-height:1.7}
-.mv.m p{color:rgba(255,255,255,.65)}
-.mv.v p{color:var(--body)}
-
-.tl{position:relative;max-width:760px;margin:0 auto}
-.tl-line{position:absolute;left:19px;top:0;bottom:0;width:2px;background:var(--line-dark);overflow:hidden}
-.tl-line i{position:absolute;left:0;top:0;width:100%;height:0;background:#9ED0B8;transition:height .1s linear}
-.tl-item{position:relative;padding:0 0 58px 72px}
-.tl-item:last-child{padding-bottom:0}
-.tl-dot{position:absolute;left:8px;top:4px;width:24px;height:24px;border-radius:50%;background:var(--green-deep);border:2px solid rgba(255,255,255,.25);display:grid;place-items:center;transition:border-color .4s,background .4s}
-.tl-dot::after{content:'';width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .4s}
-.tl-item.lit .tl-dot{border-color:#9ED0B8}
-.tl-item.lit .tl-dot::after{background:#9ED0B8}
-.tl-year{font-family:'Sora';font-size:.78rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#9ED0B8;margin-bottom:8px}
-.tl-item h3{color:#fff;font-size:1.3rem;margin-bottom:8px}
-.tl-item p{color:rgba(255,255,255,.55);font-size:.94rem;max-width:34em;line-height:1.7}
-.tl-future{display:flex;gap:18px;align-items:flex-start}
-.tl-future img{width:64px;aspect-ratio:427/585;object-fit:cover;border-radius:10px;flex:none;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-
-.tech-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:860px;margin:0 auto}
-.tech{font-family:'Sora';font-weight:500;font-size:.95rem;padding:16px 30px;border-radius:100px;border:1px solid var(--line);color:var(--ink);background:#fff;transition:all .35s var(--ease);cursor:default}
-.tech:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-3px);box-shadow:0 14px 30px rgba(15,61,46,.22)}
-
-.end-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.end{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:44px;transition:transform .4s var(--ease),box-shadow .4s var(--ease)}
-.end:hover{transform:translateY(-4px);box-shadow:0 24px 54px rgba(11,15,13,.08)}
-.end-q{font-family:'Sora';font-weight:500;font-size:1.06rem;line-height:1.55;letter-spacing:-.01em;color:var(--ink);margin-bottom:30px;text-wrap:pretty}
-.end-q::before{content:'\201C';color:var(--green);font-size:1.6em;line-height:0;vertical-align:-.28em;margin-right:2px}
-.end-pts{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:34px}
-.end-pts li{display:flex;gap:11px;font-size:.9rem;color:var(--body);line-height:1.55}
-.end-pts li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);flex:none;margin-top:8px}
-.end-who{display:flex;align-items:center;gap:15px;padding-top:26px;border-top:1px solid var(--line)}
-.avatar-mono{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-family:'Sora';font-weight:700;font-size:.95rem;letter-spacing:.02em;flex:none}
-.end-name{font-family:'Sora';font-weight:600;font-size:.95rem}
-.end-role{font-size:.82rem;color:var(--green);font-weight:500}
-.end-org{font-size:.79rem;color:var(--body)}
-
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:start}
-.contact-left h2{font-size:clamp(2rem,4vw,3rem);color:#fff;margin:20px 0 18px}
-.contact-left>p{color:rgba(255,255,255,.6);margin-bottom:40px;max-width:26em;line-height:1.7}
-.cline{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--line-dark)}
-.cline svg{width:19px;height:19px;color:#9ED0B8;flex:none}
-.cline .k{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4)}
-.cline .v{font-size:.98rem;color:#fff;font-weight:500}
-.cline .v a{transition:color .2s}
-.cline .v a:hover{color:#9ED0B8}
-.cform{background:rgba(255,255,255,.04);border:1px solid var(--line-dark);border-radius:var(--r-lg);padding:42px}
-.field{margin-bottom:18px}
-.field label{display:block;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:8px;font-weight:500}
-.field input,.field textarea{width:100%;padding:14px 18px;border-radius:12px;border:1px solid var(--line-dark);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:.96rem;transition:border-color .25s,background .25s}
-.field input::placeholder,.field textarea::placeholder{color:rgba(255,255,255,.28)}
-.field input:focus,.field textarea:focus{outline:none;border-color:#9ED0B8;background:rgba(255,255,255,.08)}
-.field textarea{resize:vertical;min-height:120px}
-.form-note{font-size:.79rem;color:rgba(255,255,255,.3);margin-top:12px;text-align:center}
-
-footer{background:var(--green-deep);border-top:1px solid var(--line-dark);padding:44px 0}
-.foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
-.foot-logo img{height:20px;width:auto;filter:brightness(0) invert(1)}
-.foot p{font-size:.85rem;color:rgba(255,255,255,.4)}
-.foot a{color:rgba(255,255,255,.55);transition:color .2s}
-.foot a:hover{color:#9ED0B8}
-
-.rv{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease);transition-delay:calc(var(--i,0) * 70ms)}
-.rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){
-  .rv{opacity:1;transform:none;transition:none}
-  *{animation-duration:.01ms!important;animation-iteration-count:1!important}
-}
-
-@media(max-width:1080px){
-  .svc-grid{grid-template-columns:repeat(3,1fr)}
-  .why-grid{grid-template-columns:repeat(2,1fr)}
-  .turj-top{padding:52px}
-  .harees-info{padding:52px}
-  .tstat{padding:28px 40px}
-}
-@media(max-width:900px){
-  section{padding:80px 0}
-  .nav-links{display:none}
-  .burger{display:flex}
-  .mobile-menu{display:flex}
-  .about-grid,.mv-grid,.end-grid,.contact-grid{grid-template-columns:1fr;gap:40px}
-  .turj-top{grid-template-columns:1fr;padding:44px 36px}
-  .turj-visual{order:-1}
-  .turj-stats{grid-template-columns:1fr 1fr}
-  .tstat{padding:24px 36px;border-bottom:1px solid var(--line-dark)}
-  .tstat:nth-child(even){border-right:0}
-  .tstat:nth-child(n+3){border-bottom:0}
-  .detail-grid{grid-template-columns:1fr}
-  .harees{grid-template-columns:1fr}
-  .harees-info{padding:44px 36px 0}
-}
-@media(max-width:640px){
-  .w{padding:0 20px}
-  .svc-grid{grid-template-columns:1fr 1fr}
-  .why-grid{grid-template-columns:1fr}
-  .eng-list{grid-template-columns:1fr}
-  .detail-card{padding:32px 26px}
-  .end{padding:32px 26px}
-  .cform{padding:30px 24px}
-  .turj-stats{grid-template-columns:1fr 1fr}
-  .hero{padding-top:120px}
-  .hero-caps{margin-top:44px}
-  .tl-future{flex-direction:column}
-}
-@media(max-width:420px){.svc-grid{grid-template-columns:1fr}}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axis — The first AI built entirely in Bahrain</title>
+<meta name="description" content="Axis is a team of young Bahrainis who built the first AI made entirely in Bahrain. Its name is Mashmoom, and it speaks Bahraini Arabic.">
+<meta name="keywords" content="Bahraini AI, AI in Bahrain, Mashmoom, Axis Bahrain, Arabic AI, Bahraini dialect AI, artificial intelligence Bahrain, ذكاء اصطناعي بحريني, مشموم">
+<meta name="author" content="Axis">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<link rel="canonical" href="https://axis.bh/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Axis">
+<meta property="og:locale" content="en_BH">
+<meta property="og:locale:alternate" content="ar_BH">
+<meta property="og:title" content="Axis — The first AI built entirely in Bahrain">
+<meta property="og:description" content="Axis is a team of young Bahrainis who built the first AI made entirely in Bahrain. Its name is Mashmoom, and it speaks Bahraini Arabic.">
+<meta property="og:url" content="https://axis.bh/">
+<meta property="og:image" content="https://axis.bh/og/og-axis.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AXIS — the first AI built entirely in Bahrain">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Axis — The first AI built entirely in Bahrain">
+<meta name="twitter:description" content="Axis is a team of young Bahrainis who built the first AI made entirely in Bahrain. Its name is Mashmoom, and it speaks Bahraini Arabic.">
+<meta name="twitter:image" content="https://axis.bh/og/og-axis.png">
+<meta name="twitter:image:alt" content="AXIS — the first AI built entirely in Bahrain">
+<meta name="theme-color" content="#1E1E1E">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3000 3000'><rect width='3000' height='3000' fill='%231E1E1E'/><path d='M3000 3000H2440L1600 2160L2160 1600L3000 2440V3000Z' fill='%23498E82'/><path d='M3000 0H2440L1600 840L2160 1400L3000 560V0Z' fill='%23498E82'/><path d='M0 0H560L1400 840L840 1400L0 560V0Z' fill='%23498E82'/><path d='M0 3000H560L1400 2160L840 1600L0 2440V3000Z' fill='%23498E82'/><path d='M1500 1090L1090 1500L1500 1910L1910 1500Z' fill='%23498E82'/></svg>">
+<link rel="apple-touch-icon" href="og/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="og/icon-512.png">
+<link rel="preload" href="fonts/switzer-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="site.css">
+<noscript><link rel="stylesheet" href="noscript.css"></noscript>
+<script defer src="bahrain.js"></script>
+<script defer src="mark.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://axis.bh/#org","name":"Axis","alternateName":"أكسيس","url":"https://axis.bh/","logo":{"@type":"ImageObject","url":"https://axis.bh/og/icon-512.png","width":512,"height":512},"image":"https://axis.bh/og/og-axis.png","description":"Axis is a Bahraini technology company. It built Mashmoom, the first artificial intelligence made entirely in Bahrain, which understands and answers in Bahraini Arabic.","email":"contact@axis.bh","telephone":"+973-3973-7003","address":{"@type":"PostalAddress","addressCountry":"BH","addressRegion":"Bahrain"},"areaServed":{"@type":"Country","name":"Bahrain"},"foundingLocation":{"@type":"Place","name":"Bahrain"},"knowsLanguage":["ar-BH","ar","en"]},{"@type":"WebSite","@id":"https://axis.bh/#site","url":"https://axis.bh/","name":"Axis","inLanguage":"en","publisher":{"@id":"https://axis.bh/#org"}},{"@type":"WebPage","@id":"https://axis.bh/#page","url":"https://axis.bh/","name":"Axis — The first AI built entirely in Bahrain","isPartOf":{"@id":"https://axis.bh/#site"},"about":{"@id":"https://axis.bh/#org"},"primaryImageOfPage":{"@type":"ImageObject","url":"https://axis.bh/og/og-axis.png"}}]}</script>
 </head>
-<body>
+<body data-field="teal">
+<a class="skip" href="#main">Skip to content</a>
 
-<div id="loader" aria-hidden="true"><div class="lg"><span>A</span><span>X</span><span>I</span><span>S</span></div></div>
+<canvas id="field" aria-hidden="true"></canvas>
 
-<header id="hdr">
-  <div class="w nav">
-    <a href="#top" class="logo" aria-label="AXIS home"><img src="assets/new_logo.png" alt="AXIS" width="467" height="128"></a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#products">Products</a>
-      <a href="#why">Why AXIS</a>
-      <a href="#journey">Journey</a>
-      <a href="#contact" class="btn btn-primary">Contact Us</a>
-    </nav>
-    <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
-  </div>
+<header class="top">
+  <a class="brand" href="index.html" aria-current="page" data-peek="word"><svg viewBox="0 0 3000 3000" aria-hidden="true">
+      <path d="M3000 3000H2440L1600 2160L2160 1600L3000 2440V3000Z" fill="#498E82"/>
+      <path d="M3000 0H2440L1600 840L2160 1400L3000 560V0Z" fill="#498E82"/>
+      <path d="M0 0H560L1400 840L840 1400L0 560V0Z" fill="#498E82"/>
+      <path d="M0 3000H560L1400 2160L840 1600L0 2440V3000Z" fill="#498E82"/>
+      <path d="M1500.17 1090L1090 1500.17L1500.17 1910.33L1910.33 1500.17L1500.17 1090Z" fill="#498E82"/>
+    </svg><span>AXIS</span></a>
+  <nav aria-label="Pages">
+      <a href="index.html" data-peek="word">Home</a>
+      <a href="mashmoom.html" data-peek="mashmoom">Mashmoom</a>
+      <a href="axis.html" data-peek="bahrain">About us</a>
+      <a href="sponsor.html" data-peek="plate">Sponsor</a>
+      <a href="contact.html" data-peek="addr">Contact</a>
+  </nav>
 </header>
-<div class="mobile-menu" id="mmenu">
-  <a href="#about">About</a>
-  <a href="#services">Services</a>
-  <a href="#products">Products</a>
-  <a href="#why">Why AXIS</a>
-  <a href="#journey">Journey</a>
-  <a href="#contact" class="btn btn-primary" style="justify-content:center">Contact Us</a>
+
+<!-- The mark. On the landing it is the full AXIS lockup, built out of his own
+     wordmark rather than the icon blown up; from the first card on it is handed
+     to the right column and stays there. -->
+<div class="stage" aria-hidden="true">
+  <svg class="fallback" viewBox="0 0 10373 3000" aria-hidden="true" preserveAspectRatio="xMidYMid meet"><path d="M10373 0H8971.91C8461.34 0 8117 362.5 8117 900C8117 1437.5 8461.34 1800 8971.91 1800H9565.59C9719.95 1800 9826.81 1912.5 9826.81 2075C9826.81 2237.5 9719.95 2350 9565.59 2350H8117V3000H9518.09C10028.7 3000 10373 2637.5 10373 2100C10373 1562.5 10028.7 1200 9518.09 1200H8924.41C8770.05 1200 8663.19 1087.5 8663.19 925C8663.19 762.5 8770.05 650 8924.41 650H10373V0Z" fill="#498E82"/><path d="M7542.26 0H7044.74C6986.89 0 6940 44.7715 6940 100V2900C6940 2955.23 6986.89 3000 7044.74 3000H7542.26C7600.11 3000 7647 2955.23 7647 2900V100C7647 44.7715 7600.11 0 7542.26 0Z" fill="#498E82"/><path d="M6470 3000H5910L5070 2160L5630 1600L6470 2440V3000Z" fill="#498E82"/><path d="M6470 0H5910L5070 840L5630 1400L6470 560V0Z" fill="#498E82"/><path d="M3470 0H4030L4870 840L4310 1400L3470 560V0Z" fill="#498E82"/><path d="M3470 3000H4030L4870 2160L4310 1600L3470 2440V3000Z" fill="#498E82"/><path d="M4970.17 1090L4560 1500.17L4970.17 1910.33L5380.33 1500.17L4970.17 1090Z" fill="#498E82"/><path d="M1007.79 95.25L7.90631 2904.75C-14.6461 2968.25 11.0489 3000 84.9912 3000H625.695C699.637 3000 747.885 2968.25 770.437 2904.75L1770.32 95.25C1792.88 31.75 1767.18 0 1693.24 0H1152.53C1078.59 0 1030.34 31.75 1007.79 95.25Z" fill="#498E82"/><path d="M2245.31 2903.75L1723.46 1246.25C1703.31 1182.08 1730.21 1150 1804.15 1150H2303.26C2377.21 1150 2424.71 1181.96 2445.79 1245.87L2992.59 2904.12C3013.66 2968.04 2987.23 3000 2913.29 3000H2386.45C2312.51 3000 2265.46 2967.92 2245.31 2903.75Z" fill="#498E82"/></svg>
+  <canvas id="mark" data-form="word" data-splash="true"></canvas>
+  <div class="label mono" data-settle>AXIS</div>
 </div>
 
-<main id="top">
+<main class="deck" id="main">
+  <section class="card landing" data-form="word" data-label="AXIS">
+    <div class="said">
+      <p class="wordline">We're <b>Axis.</b></p>
+      <p class="sub">Young Bahrainis who would rather build it than buy it. So we did.</p>
+      <span class="cue mono">Keep going</span>
+    </div>
+  </section>
 
-<section class="hero" aria-label="Intro">
-  <canvas id="net" aria-hidden="true"></canvas>
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="w">
-    <div class="hero-inner">
-      <span class="eyebrow rv in" style="--i:0">AI Products · AI Solutions · Bahrain</span>
-      <h1 aria-label="Intelligence, engineered for the real world.">
-        <span class="wr"><span style="--d:0">Intelligence,</span></span>
-        <span class="wr"><span style="--d:80">engineered</span></span><br>
-        <span class="wr"><span style="--d:160">for&nbsp;the</span></span>
-        <span class="wr"><span class="accent" style="--d:240">real&nbsp;world.</span></span>
-      </h1>
-      <p class="lead rv in" style="--i:3">AXIS builds practical AI products and delivers custom AI solutions for businesses and organizations and engineering intelligent systems that extend human capability, not replace it.</p>
-      <div class="hero-ctas rv in" style="--i:4">
-        <a href="#products" class="btn btn-primary magnetic">Explore Our Work <span class="arr">→</span></a>
-        <a href="#contact" class="btn btn-ghost magnetic">Contact Us</a>
+  <section class="card" data-form="mashmoom" data-label="MASHMOOM">
+    <div class="said">
+      <h1 data-assemble>The first AI built entirely in <em>Bahrain.</em></h1>
+      <p class="sub">Its name is Mashmoom.</p>
+      <a class="btn" href="mashmoom.html" data-peek="mashmoom">Meet Mashmoom</a>
+    </div>
+  </section>
+
+  <section class="card" data-form="plate" data-label="SPONSORSHIP">
+    <div class="said">
+      <h2 data-assemble>Put your name <em>on it.</em></h2>
+      <p class="sub">Sponsorship is open.</p>
+      <a class="btn" href="sponsor.html" data-peek="plate">Explore sponsorship</a>
+    </div>
+  </section>
+
+  <!-- Two pages in one, split by a single hairline. The icons are drawn for
+       these two doors and nothing else: a lattice of diamonds pretending to be
+       a pictogram was reading as neither the mark nor an icon. -->
+  <section class="card wide" data-form="word" data-stage="off" data-label="AXIS">
+    <div class="said">
+      <h2 data-assemble>Who <em>made this.</em></h2>
+      <div class="split">
+        <a class="half" href="axis.html" data-peek="bahrain">
+          <span class="ic2"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 2.5H14V6.5H10Z"/>
+            <path d="M9 21.5V12L12 8.6L15 12V21.5Z"/>
+            <path d="M3 6.2H6.4V9.6H3Z" opacity=".5"/>
+            <path d="M2 21.5V14.2L4.7 11.3L7.4 14.2V21.5Z" opacity=".5"/>
+            <path d="M17.6 6.2H21V9.6H17.6Z" opacity=".5"/>
+            <path d="M16.6 21.5V14.2L19.3 11.3L22 14.2V21.5Z" opacity=".5"/>
+          </svg></span>
+          <b>About us</b>
+          <p>Get to know the team.</p>
+        </a>
+        <div class="rule"></div>
+        <a class="half" href="contact.html" data-peek="addr">
+          <span class="ic2"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 2H22V7.5L18.5 11H8Z" opacity=".45"/>
+            <path d="M2 8H16V13.5L12.5 17H2Z"/>
+            <path d="M4.5 17H9L4.5 21.5Z"/>
+          </svg></span>
+          <b>Contact</b>
+          <p>Reach out to the team.</p>
+        </a>
       </div>
     </div>
-
-  </div>
-</section>
-
-<section id="about">
-  <div class="w">
-    <div class="sec-head rv">
-      <span class="eyebrow">About AXIS</span>
-      <h2>An AI company built on practical engineering.</h2>
-    </div>
-    <div class="about-grid">
-      <p class="about-big rv">We believe technology should <strong>extend human capability</strong> — not replace it. AXIS creates AI products and delivers tailored AI solutions that solve meaningful, real-world problems.</p>
-      <div class="about-side rv" style="--i:1">
-        <p>AXIS is an AI company based in Bahrain. We design, train, and ship intelligent systems end to end — from custom machine-learning models and embedded hardware to enterprise automation and large language models.</p>
-        <p>We care about practical impact more than hype. Every product we build and every solution we deliver is measured by one thing: does it work in the real world, for real people?</p>
-        <div class="about-marks">
-          <div class="amark"><div class="k">Engineering-first</div><div class="v">Our own hardware, our own models</div></div>
-          <div class="amark"><div class="k">Built in Bahrain</div><div class="v">Local engineering, global standards</div></div>
-          <div class="amark"><div class="k">Products & services</div><div class="v">We ship both</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="services" class="soft">
-  <div class="w">
-    <div class="sec-head rv">
-      <span class="eyebrow">AI Services</span>
-      <h2>Everything your organization needs to adopt AI.</h2>
-      <p>From first prototype to enterprise deployment — we design, build, and integrate intelligent systems tailored to how you actually work.</p>
-    </div>
-    <div class="svc-grid">
-      <div class="svc rv" style="--i:0"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/><circle cx="12" cy="12" r="4"/></svg></div><h3>AI Automation</h3><p>Automate repetitive work with intelligent, reliable pipelines.</p></div>
-      <div class="svc rv" style="--i:1"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 6-5 6 5 6M16 6l5 6-5 6"/></svg></div><h3>Custom AI Development</h3><p>Bespoke AI systems designed around your exact problem.</p></div>
-      <div class="svc rv" style="--i:2"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 20h18M6 20V9m6 11V4m6 16v-8"/></svg></div><h3>Machine Learning</h3><p>Models trained, evaluated, and deployed on your data.</p></div>
-      <div class="svc rv" style="--i:3"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Computer Vision</h3><p>Systems that see — detection, tracking, and inspection.</p></div>
-      <div class="svc rv" style="--i:4"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a8 8 0 1 0-3.1 6.3L21 20l-1-3.4c.6-1.3 1-2.9 1-4.6z"/></svg></div><h3>Natural Language</h3><p>Understanding and generating language, Arabic included.</p></div>
-      <div class="svc rv" style="--i:0"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9z"/></svg></div><h3>LLM Development</h3><p>Custom large language models tuned for your domain.</p></div>
-      <div class="svc rv" style="--i:1"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg></div><h3>Enterprise AI</h3><p>Secure, scalable AI integrated into your organization.</p></div>
-      <div class="svc rv" style="--i:2"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 17V7a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></div><h3>Workflow Automation</h3><p>Connect tools and teams with smart, self-running flows.</p></div>
-      <div class="svc rv" style="--i:3"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></div><h3>AI Consulting</h3><p>Strategy, feasibility, and a clear roadmap to adoption.</p></div>
-      <div class="svc rv" style="--i:4"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v4m0 0a6 6 0 1 1-4.2 1.7"/><path d="M9 18h6m-5 3h4"/></svg></div><h3>Prototype Development</h3><p>From idea to a working intelligent prototype, fast.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="products">
-  <div class="w">
-    <div class="sec-head rv">
-      <span class="eyebrow">Featured Products</span>
-      <h2>Proof, shipped.</h2>
-      <p>Our products demonstrate what AXIS engineering can do — starting with a device that gives people back their voice, and a language model built for Bahrain.</p>
-    </div>
-
-    <div class="turj rv">
-      <div class="turj-top">
-        <div class="turj-info">
-          <span class="prod-tag dark-tag"><span class="dot"></span>Flagship Product · Shipping</span>
-          <div class="ar">Turjuman</div>
-          <span class="ar-s" lang="ar" dir="rtl">تَرْجُمان</span>
-          <p>An AI-powered smart glove that translates Arabic Sign Language into spoken Arabic in real time. Fully offline, completely private, and standalone — with its own on-device model, speaker, and battery. No phone required.</p>
-          <div class="turj-chips">
-            <span class="chip">On-device AI</span>
-            <span class="chip">100% offline</span>
-            <span class="chip">Private by design</span>
-            <span class="chip">Two-way with app</span>
-            <span class="chip">Built in Bahrain</span>
-          </div>
-        </div>
-        <div class="turj-visual">
-          <div class="ring" aria-hidden="true"></div>
-          <div class="ring r2" aria-hidden="true"></div>
-          <div class="turj-photo">
-            <img src="assets/glove.jpg" alt="The AXIS Turjuman smart glove" width="3376" height="6000" loading="lazy">
-          </div>
-        </div>
-      </div>
-      <div class="turj-stats">
-        <div class="tstat"><div class="n"><em data-count="99">0</em>%</div><div class="d">recognition accuracy</div></div>
-        <div class="tstat"><div class="n">&lt;<em data-count="200">0</em>ms</div><div class="d">gesture to speech</div></div>
-        <div class="tstat"><div class="n"><em data-count="80">0</em> BHD</div><div class="d">87% below alternatives</div></div>
-        <div class="tstat"><div class="n"><em data-count="70">0</em>M+</div><div class="d">deaf people worldwide</div></div>
-      </div>
-    </div>
-
-    <div class="detail-grid">
-      <div class="detail-card rv" style="--i:0">
-        <h3>Engineered from the ground up.</h3>
-        <p>Our own hardware and our own model. Six core components turn a hand gesture into a spoken Arabic sentence — entirely on the device.</p>
-        <ul class="eng-list" style="list-style:none">
-          <li class="eng-item"><img class="eng-thumb" src="assets/flex_sensor.png" alt="" width="500" height="500" loading="lazy">5 flex sensors, one per finger</li>
-          <li class="eng-item"><img class="eng-thumb" src="assets/mpu.png" alt="" width="500" height="500" loading="lazy">6-axis motion tracker</li>
-          <li class="eng-item"><img class="eng-thumb" src="assets/firebeetle.png" alt="" width="500" height="500" loading="lazy">On-board micro computer</li>
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Custom ML model, multi-signer</li>
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Built-in speaker</li>
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Lithium battery, safety-first</li>
-        </ul>
-      </div>
-      <div class="detail-card rv" style="--i:1">
-        <h3>Two-way conversation, one companion app.</h3>
-        <p>The Turjuman app turns the other person's speech into instant text — in Arabic and English, online or offline — completing the conversation loop while keeping every word on the device.</p>
-        <ul class="eng-list" style="list-style:none;grid-template-columns:1fr">
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Arabic &amp; English speech-to-text</li>
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Works online and offline</li>
-          <li class="eng-item"><span class="eng-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-11"/></svg></span>Locally stored conversations</li>
-        </ul>
-        <div class="lang-visual" aria-hidden="true">
-          <div class="lang-badge"><span>AR</span><span class="arrow">⇄</span><span>EN</span></div>
-          <div class="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tbl-wrap rv">
-      <table>
-        <caption class="sr-only">Comparison of Turjuman against alternatives</caption>
-        <thead><tr><th scope="col">Feature</th><th scope="col" class="us">Turjuman</th><th scope="col">Video relay</th><th scope="col">BrightSign</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Response time</th><td class="us">Under 200 ms</td><td>30–60 seconds</td><td>~1 s (cloud)</td></tr>
-          <tr><th scope="row">Works offline</th><td class="us"><span class="y">✓</span></td><td><span class="no">✕</span></td><td><span class="no">✕</span></td></tr>
-          <tr><th scope="row">Private</th><td class="us"><span class="y">✓</span></td><td><span class="no">✕</span></td><td><span class="no">✕</span></td></tr>
-          <tr><th scope="row">Two-way</th><td class="us"><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="no">✕</span></td></tr>
-          <tr><th scope="row">Arabic SL focus</th><td class="us"><span class="y">✓</span></td><td><span class="y">✓</span></td><td><span class="no">✕</span></td></tr>
-          <tr><th scope="row">Price</th><td class="us">80 BHD</td><td>Subsidised</td><td>~600 BHD</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="harees rv">
-      <div class="harees-info">
-        <span class="prod-tag dark-tag"><span class="dot pulse"></span>Launching Soon</span>
-        <h3>Harees</h3>
-        <span class="ar-s" lang="ar" dir="rtl">هريس</span>
-        <p>AXIS's upcoming Large Language Model, built specifically for Bahrain. Designed around the Bahraini dialect for natural local conversations — preserving local identity while advancing AI.</p>
-        <div class="harees-uses">
-          <span class="chip">Businesses</span>
-          <span class="chip">Education</span>
-          <span class="chip">Customer service</span>
-          <span class="chip">Government</span>
-          <span class="chip">Local AI experiences</span>
-        </div>
-      </div>
-      <div class="harees-visual" aria-hidden="true"><canvas id="orb"></canvas></div>
-    </div>
-  </div>
-</section>
-
-<section id="why" class="soft">
-  <div class="w">
-    <div class="sec-head rv">
-      <span class="eyebrow">Why AXIS</span>
-      <h2>Why organizations choose us.</h2>
-    </div>
-    <div class="why-grid rv">
-      <div class="why"><span class="idx">01</span><h3>Locally engineered</h3><p>Hardware, models, and software designed and built in Bahrain.</p></div>
-      <div class="why"><span class="idx">02</span><h3>Privacy-first</h3><p>On-device processing by default. Your data stays yours.</p></div>
-      <div class="why"><span class="idx">03</span><h3>Practical AI</h3><p>We build for measurable impact, not for demos.</p></div>
-      <div class="why"><span class="idx">04</span><h3>Custom-built</h3><p>Every solution designed around your exact problem.</p></div>
-      <div class="why"><span class="idx">05</span><h3>Fast execution</h3><p>From concept to working prototype in weeks, not quarters.</p></div>
-      <div class="why"><span class="idx">06</span><h3>Research-backed</h3><p>Every claim validated by our own testing and field studies.</p></div>
-      <div class="why"><span class="idx">07</span><h3>Purpose-driven</h3><p>We innovate to solve real human needs, first and always.</p></div>
-      <div class="why"><span class="idx">08</span><h3>Regional relevance</h3><p>Arabic-first AI with global engineering standards.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="mission">
-  <div class="w">
-    <div class="mv-grid">
-      <div class="mv m rv" style="--i:0">
-        <span class="tag">Our Mission</span>
-        <h3>AXIS exists to create intelligent technology that solves meaningful problems.</h3>
-        <p>We help organizations innovate through practical AI. We believe AI should improve lives, empower businesses, and create measurable impact — and we hold every product we ship to that standard.</p>
-      </div>
-      <div class="mv v rv" style="--i:1">
-        <span class="tag">Our Vision</span>
-        <h3>To become Bahrain's leading AI innovation company.</h3>
-        <p>Building products with deep regional relevance and genuine global potential — proving that world-class AI can be engineered from Bahrain, for the region and beyond.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="journey" class="dark on-dark">
-  <div class="w">
-    <div class="sec-head center rv">
-      <span class="eyebrow">The Journey</span>
-      <h2>Where we've been. Where we're going.</h2>
-    </div>
-    <div class="tl">
-      <div class="tl-line" aria-hidden="true"><i id="tlfill"></i></div>
-      <div class="tl-item rv" style="--i:0">
-        <div class="tl-dot"></div>
-        <div class="tl-year">2023</div>
-        <h3>AXIS is founded</h3>
-        <p>An AI company is born in Bahrain with a simple conviction: technology should extend human capability.</p>
-      </div>
-      <div class="tl-item rv" style="--i:1">
-        <div class="tl-dot"></div>
-        <div class="tl-year">2026</div>
-        <h3>Turjuman ships</h3>
-        <p>Our flagship smart glove brings real-time Arabic Sign Language translation to the people who need it — offline, private, and affordable.</p>
-      </div>
-      <div class="tl-item rv" style="--i:2">
-        <div class="tl-dot"></div>
-        <div class="tl-year">Launching Soon</div>
-        <h3>Harees arrives</h3>
-        <p>Bahrain's own Large Language Model — built for the Bahraini dialect, businesses, education, and government.</p>
-      </div>
-      <div class="tl-item rv" style="--i:3">
-        <div class="tl-dot"></div>
-        <div class="tl-year">Future</div>
-        <div class="tl-future">
-          <img src="assets/future_glove.png" alt="" width="427" height="585" loading="lazy">
-          <div>
-            <h3>And this is only the beginning</h3>
-            <p>More AI products. More AI services. Regional expansion — from Bahrain to the world.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="technology">
-  <div class="w">
-    <div class="sec-head center rv">
-      <span class="eyebrow">Technology</span>
-      <h2>The disciplines behind our work.</h2>
-      <p>We go deep across the full stack of intelligence — from silicon to language.</p>
-    </div>
-    <div class="tech-row rv">
-      <span class="tech">Artificial Intelligence</span>
-      <span class="tech">Machine Learning</span>
-      <span class="tech">Embedded Systems</span>
-      <span class="tech">On-device AI</span>
-      <span class="tech">Computer Vision</span>
-      <span class="tech">Large Language Models</span>
-      <span class="tech">Automation</span>
-    </div>
-  </div>
-</section>
-
-<section id="endorsements" class="soft">
-  <div class="w">
-    <div class="sec-head rv">
-      <span class="eyebrow">Endorsements</span>
-      <h2>Trusted by the people who matter most.</h2>
-      <p>We build with the community, not just for it — and the experts who serve it back our work.</p>
-    </div>
-    <div class="end-grid">
-      <div class="end rv" style="--i:0">
-        <p class="end-q">The community's top priorities are privacy and true two-way communication — Turjuman delivers both.</p>
-        <ul class="end-pts">
-          <li>Validated the problem first-hand — an interpreter was only available 18 minutes into a hospital visit.</li>
-          <li>Set the bar at 90%+ accuracy and sub-second response. Turjuman exceeds both.</li>
-          <li>Offered strong support for piloting, testing, and ongoing collaboration.</li>
-        </ul>
-        <div class="end-who">
-          <div class="avatar-mono" aria-hidden="true">SA</div>
-          <div>
-            <div class="end-name">Sayed Hasan Alghuraify</div>
-            <div class="end-role">President of the Board</div>
-            <div class="end-org">Bahrain Deaf Society</div>
-          </div>
-        </div>
-      </div>
-      <div class="end rv" style="--i:1">
-        <p class="end-q">A genuine teaching and communication tool for the Arabic sign-language community.</p>
-        <ul class="end-pts">
-          <li>Certified educator and author of Arabic sign-language alphabet books.</li>
-          <li>Featured Turjuman to her audience, sharing it with the global sign-language community.</li>
-          <li>An independent endorsement — discussed using the glove as an ArSL teaching tool.</li>
-        </ul>
-        <div class="end-who">
-          <div class="avatar-mono" aria-hidden="true">WW</div>
-          <div>
-            <div class="end-name">Wendy D. Wilson, M.Ed.</div>
-            <div class="end-role">Sign-Language Educator</div>
-            <div class="end-org">Wendy's Friends LLC</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="contact" class="dark on-dark">
-  <div class="w">
-    <div class="contact-grid">
-      <div class="contact-left rv">
-        <span class="eyebrow">Contact</span>
-        <h2>Let's build something intelligent.</h2>
-        <p>Whether you're a business exploring AI, an institution, or a future partner — we'd love to hear from you.</p>
-        <div class="cline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div><div class="k">Email</div><div class="v"><a href="mailto:contact@axis.bh">contact@axis.bh</a></div></div></div>
-        <div class="cline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg><div><div class="k">Instagram</div><div class="v"><a href="https://instagram.com/axis.sys" target="_blank" rel="noopener">@axis.sys</a></div></div></div>
-        <div class="cline" style="border-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><div><div class="k">Website</div><div class="v"><a href="https://axis.bh" target="_blank" rel="noopener">axis.bh</a></div></div></div>
-      </div>
-      <form class="cform rv" id="cf" style="--i:1">
-        <div class="field"><label for="fn">Your name</label><input type="text" id="fn" name="name" placeholder="Full name" autocomplete="name" required></div>
-        <div class="field"><label for="fe">Your email</label><input type="email" id="fe" name="email" placeholder="you@example.com" autocomplete="email" required></div>
-        <div class="field"><label for="fm">Message</label><textarea id="fm" name="message" placeholder="Tell us about your project or idea…" required></textarea></div>
-        <button type="submit" class="btn btn-light magnetic" style="width:100%;justify-content:center">Send message <span class="arr">→</span></button>
-        <p class="form-note">Opens your email app, pre-filled to contact@axis.bh</p>
-      </form>
-    </div>
-  </div>
-</section>
-
+  </section>
 </main>
-
-<footer>
-  <div class="w foot">
-    <span class="foot-logo"><img src="assets/logo-axis.png" alt="AXIS" width="467" height="128"></span>
-    <p>AI Products · AI Services · Built in Bahrain</p>
-    <p><a href="mailto:contact@axis.bh">contact@axis.bh</a> · © 2025–2026 AXIS</p>
-  </div>
-</footer>
-
-<script>
-(function(){
-'use strict';
-var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-var loader = document.getElementById('loader');
-window.addEventListener('load', function(){
-  setTimeout(function(){ loader.classList.add('done'); }, reduced ? 0 : 850);
-  setTimeout(function(){ loader.remove(); }, 1800);
-});
-setTimeout(function(){ if(document.body.contains(loader)) loader.classList.add('done'); }, 2600);
-
-var hdr = document.getElementById('hdr');
-var onScrollHdr = function(){ hdr.classList.toggle('scrolled', scrollY > 10); };
-addEventListener('scroll', onScrollHdr, {passive:true}); onScrollHdr();
-
-var burger = document.getElementById('burger'), mmenu = document.getElementById('mmenu');
-burger.addEventListener('click', function(){
-  var open = mmenu.classList.toggle('open');
-  burger.classList.toggle('open', open);
-  burger.setAttribute('aria-expanded', open);
-});
-mmenu.querySelectorAll('a').forEach(function(a){
-  a.addEventListener('click', function(){ mmenu.classList.remove('open'); burger.classList.remove('open'); });
-});
-
-var navAnchors = document.querySelectorAll('.nav-links a:not(.btn)');
-var secIO = new IntersectionObserver(function(es){
-  es.forEach(function(e){
-    if(!e.isIntersecting) return;
-    navAnchors.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id); });
-  });
-},{rootMargin:'-40% 0px -55% 0px'});
-['about','services','products','why','journey'].forEach(function(id){
-  var el = document.getElementById(id); if(el) secIO.observe(el);
-});
-
-(function(){
-  var cv = document.getElementById('net'); if(!cv || reduced) return;
-  var ctx = cv.getContext('2d'), W, H, pts = [], mouse = {x:-9999,y:-9999};
-  var DPR = Math.min(devicePixelRatio || 1, 2);
-  function size(){
-    var r = cv.parentElement.getBoundingClientRect();
-    W = r.width; H = r.height;
-    cv.width = W * DPR; cv.height = H * DPR;
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    var n = Math.min(70, Math.floor(W * H / 22000));
-    pts = [];
-    for(var i=0;i<n;i++) pts.push({
-      x:Math.random()*W, y:Math.random()*H,
-      vx:(Math.random()-.5)*.28, vy:(Math.random()-.5)*.28,
-      r:1 + Math.random()*1.4
-    });
-  }
-  size(); addEventListener('resize', size);
-  addEventListener('mousemove', function(e){
-    var r = cv.getBoundingClientRect();
-    mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
-  }, {passive:true});
-  var DIST = 130;
-  function frame(){
-    ctx.clearRect(0,0,W,H);
-    for(var i=0;i<pts.length;i++){
-      var p = pts[i];
-      p.x += p.vx; p.y += p.vy;
-      if(p.x < 0 || p.x > W) p.vx *= -1;
-      if(p.y < 0 || p.y > H) p.vy *= -1;
-      var dxm = mouse.x - p.x, dym = mouse.y - p.y, dm = Math.hypot(dxm, dym);
-      if(dm < 180 && dm > 0.001){ p.x += dxm/dm * .25; p.y += dym/dm * .25; }
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283);
-      ctx.fillStyle = 'rgba(15,61,46,.22)'; ctx.fill();
-      for(var j=i+1;j<pts.length;j++){
-        var q = pts[j], dx = p.x-q.x, dy = p.y-q.y, d = dx*dx + dy*dy;
-        if(d < DIST*DIST){
-          ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
-          ctx.strokeStyle = 'rgba(15,61,46,' + (0.10 * (1 - d/(DIST*DIST))).toFixed(3) + ')';
-          ctx.lineWidth = 1; ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
-
-var rvIO = new IntersectionObserver(function(es){
-  es.forEach(function(e){
-    if(e.isIntersecting){ e.target.classList.add('in'); rvIO.unobserve(e.target); }
-  });
-},{threshold:.12, rootMargin:'0px 0px -6% 0px'});
-document.querySelectorAll('.rv').forEach(function(el){ rvIO.observe(el); });
-
-var cIO = new IntersectionObserver(function(es){
-  es.forEach(function(e){
-    if(!e.isIntersecting) return;
-    cIO.unobserve(e.target);
-    var el = e.target, target = +el.dataset.count, t0 = null, dur = 1400;
-    if(reduced){ el.textContent = target; return; }
-    function tick(t){
-      if(!t0) t0 = t;
-      var k = Math.min((t - t0)/dur, 1);
-      el.textContent = Math.round(target * (1 - Math.pow(1-k, 4)));
-      if(k < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  });
-},{threshold:.6});
-document.querySelectorAll('[data-count]').forEach(function(el){ cIO.observe(el); });
-
-if(!reduced && matchMedia('(hover:hover)').matches){
-  document.querySelectorAll('.magnetic').forEach(function(b){
-    b.addEventListener('mousemove', function(e){
-      var r = b.getBoundingClientRect();
-      var x = (e.clientX - r.left - r.width/2) * .22;
-      var y = (e.clientY - r.top - r.height/2) * .32;
-      b.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-    });
-    b.addEventListener('mouseleave', function(){ b.style.transform = ''; });
-  });
-}
-
-(function(){
-  var tl = document.querySelector('.tl'), fill = document.getElementById('tlfill');
-  if(!tl || !fill) return;
-  var items = tl.querySelectorAll('.tl-item');
-  function upd(){
-    var r = tl.getBoundingClientRect(), vh = innerHeight;
-    var prog = Math.min(Math.max((vh * .72 - r.top) / r.height, 0), 1);
-    fill.style.height = (prog * 100) + '%';
-    items.forEach(function(it){
-      var ir = it.getBoundingClientRect();
-      it.classList.toggle('lit', ir.top < vh * .72);
-    });
-  }
-  addEventListener('scroll', upd, {passive:true}); upd();
-})();
-
-(function(){
-  var cv = document.getElementById('orb'); if(!cv) return;
-  var ctx = cv.getContext('2d'), W, H, t = 0;
-  var DPR = Math.min(devicePixelRatio || 1, 2);
-  function size(){
-    var r = cv.parentElement.getBoundingClientRect();
-    W = r.width; H = r.height;
-    cv.width = W * DPR; cv.height = H * DPR;
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  size(); addEventListener('resize', size);
-  function frame(){
-    ctx.clearRect(0,0,W,H);
-    var cx = W/2, cy = H/2, base = Math.min(W,H) * .27;
-    for(var ring=0; ring<4; ring++){
-      ctx.beginPath();
-      for(var a=0; a<=128; a++){
-        var th = a/128 * Math.PI*2;
-        var wob = Math.sin(th*3 + t*.014 + ring*1.7) * 7 + Math.sin(th*5 - t*.01 + ring) * 5;
-        var rad = base + ring*22 + wob;
-        var x = cx + Math.cos(th)*rad, y = cy + Math.sin(th)*rad*.92;
-        a === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = 'rgba(158,208,184,' + (0.34 - ring*.07) + ')';
-      ctx.lineWidth = 1.1;
-      ctx.stroke();
-    }
-    var g = ctx.createRadialGradient(cx,cy,0,cx,cy,base*.95);
-    g.addColorStop(0,'rgba(158,208,184,.16)');
-    g.addColorStop(1,'rgba(158,208,184,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(cx,cy,base*.95,0,6.283); ctx.fill();
-    t++;
-    if(!reduced) requestAnimationFrame(frame);
-  }
-  frame();
-})();
-
-document.getElementById('cf').addEventListener('submit', function(e){
-  e.preventDefault();
-  var n = encodeURIComponent(document.getElementById('fn').value.trim());
-  var em = encodeURIComponent(document.getElementById('fe').value.trim());
-  var m = encodeURIComponent(document.getElementById('fm').value.trim());
-  location.href = 'mailto:contact@axis.bh?subject=Enquiry%20from%20' + n + '&body=' + m + '%0A%0A—%20' + n + '%20%3C' + em + '%3E';
-});
-})();
-</script>
 </body>
 </html>

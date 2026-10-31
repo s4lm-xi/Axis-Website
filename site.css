@@ -1,0 +1,616 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIS
+
+   Every page is a stack of cards, one card to a screen, one notch of the wheel
+   to each. The card is a frame: it is what makes the mark's motion read as
+   deliberate rather than as something loose happening behind the words.
+
+   The mark is held in the right column of that frame and never scrolls. Each
+   card names the formation that belongs to it, and the particles morph from
+   one of his marks into the next as you go.
+
+   NO CONTAINERS. There is not one card, tile, panel or box on this site. A
+   capability gets a line of the page, a hairline above it and something that
+   answers the cursor. Everything that used to be a grid of bordered squares is
+   now set as type, because a row of boxes is how every other site says the
+   same thing.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Switzer';src:url('fonts/switzer-variable.woff2') format('woff2-variations');font-weight:100 900;font-display:swap}
+@font-face{font-family:'Azeret';src:url('fonts/azeret-mono-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'PlexAr';src:url('fonts/plex-arabic-600.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'PlexAr';src:url('fonts/plex-arabic-400.woff2') format('woff2');font-weight:400;font-display:swap}
+
+:root{
+  --ink:#FFFBF7; --cream:#1E1E1E;
+  --teal-deep:#498E82; --teal:#498E82;
+  --m-900:#3A2257; --m-600:#6B3FA0; --m-400:#8456BC; --m-200:#9F7ACB; --m-100:#B99FD9;
+
+  /* against #1E1E1E: --dim 11.4:1, --ghost 10.7:1, both well clear of WCAG AA */
+  --dim:rgba(255,251,247,.66);
+  --ghost:rgba(255,251,247,.62);
+  --hair:rgba(255,251,247,.17);
+  --faint:rgba(255,251,247,.34);
+
+  /* HIS RULE, LITERALLY. Green is Axis, purple is Mashmoom, and a page never
+     accents itself in its own colour: the green pages answer in purple and the
+     purple page answers in green. Every rule, every caret, every underline and
+     every hover below reads --acc, so the whole site turns over on one line. */
+  --acc:var(--m-600); --acc-lo:var(--m-400); --acc-dim:rgba(107,63,160,.32);
+
+  --bar:74px;
+  --pad:clamp(20px,4vw,56px);
+  --shell:1440px;
+  --deck:min(calc(100vw - var(--pad) * 2), calc(var(--shell) - var(--pad) * 2));
+  --deckL:max(var(--pad), calc((100vw - var(--shell)) / 2 + var(--pad)));
+  /* ── MOTION ───────────────────────────────────────────────────────────
+     One scale for the whole site, taken from the published duration ladders
+     rather than picked per element: 120ms for a colour, 200ms for a small
+     thing answering you, 280ms for something with size, 400ms for a screen
+     arriving, 600ms for the one decorative travel. Stagger is 40ms.
+
+     Two curves beside the long one. --out is a critically damped spring
+     (stiffness 300, damping 30) written as a bezier: fast off the mark, lands
+     without wobbling. --back carries about 0.15 of bounce, which is as much
+     overshoot as anything here is allowed.
+
+     And hover is ASYMMETRIC. Arriving is fast because you caused it; leaving
+     is slower because nobody is watching it go. The same duration on the same
+     curve in both directions is exactly what reads as a machine. */
+  --t-fast:120ms; --t-base:200ms; --t-mid:280ms; --t-slow:400ms; --t-dec:640ms;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --out:cubic-bezier(.16,.84,.34,1);
+  --back:cubic-bezier(.34,1.35,.64,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{
+  -webkit-text-size-adjust:100%;
+  scroll-padding-top:var(--bar);
+}
+/* One notch moves one card, and mark.js drives that directly. CSS snapping is
+   deliberately not used: mandatory springs a small wheel notch back to the card
+   you are already on, and proximity drifts. The alignment is done in script so
+   it is exact. */
+body[data-field="purple"]{
+  --acc:var(--teal-deep); --acc-lo:#5FB4A5; --acc-dim:rgba(73,142,130,.34);
+}
+body{
+  margin:0;background:var(--cream);color:var(--ink);
+  font-family:'Switzer',ui-sans-serif,system-ui,sans-serif;
+  font-size:17px;line-height:1.55;font-weight:450;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+::selection{background:var(--teal-deep);color:var(--cream)}
+:focus-visible{outline:2px solid var(--teal-deep);outline-offset:4px}
+
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--ink);color:var(--cream);
+  padding:14px 20px;text-decoration:none}
+.skip:focus{left:0}
+
+.mono{font-family:'Azeret',ui-monospace,monospace;font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase}
+
+/* ── the bar ────────────────────────────────────────────────────────────── */
+.top{position:fixed;inset:0 0 auto 0;z-index:20;height:var(--bar);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--deckL);background:var(--cream);
+  border-bottom:1px solid var(--hair)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);
+  font-weight:600;letter-spacing:.26em;font-size:13px;min-height:44px}
+.brand svg{width:19px;height:19px;transition:transform .9s var(--ease)}
+.brand:hover svg{transform:rotate(90deg)}
+/* One diamond for the whole bar. It rests under the page you are on and runs
+   to whatever you reach for, which is the same thing the mark does behind it:
+   the bar answers before the click lands. Five separate underlines appearing
+   and disappearing was five small events; this is one object with a position. */
+.top nav{display:flex;align-items:center;gap:clamp(14px,2.4vw,34px);position:relative}
+.top nav a{position:relative;text-decoration:none;color:var(--ghost);font-size:14px;
+  font-weight:500;padding:12px 0;min-height:44px;display:inline-flex;align-items:center;
+  letter-spacing:0;
+  transition:color var(--t-mid) var(--ease),letter-spacing var(--t-mid) var(--ease),translate var(--t-mid) var(--ease)}
+.top nav a:hover{color:var(--ink);letter-spacing:.035em;translate:0 -2px;
+  transition:color var(--t-fast) var(--out),letter-spacing var(--t-base) var(--back),translate var(--t-base) var(--back)}
+.top nav a[aria-current="page"]{color:var(--ink);font-weight:600}
+.navmark{position:absolute;left:0;bottom:9px;width:9px;height:9px;margin-left:-4.5px;
+  background:var(--acc);pointer-events:none;opacity:0;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  transition:opacity var(--t-mid) var(--ease)}
+.mark-live .navmark{opacity:1}
+
+
+/* ── the field ──────────────────────────────────────────────────────────
+   Behind everything, always moving. Drawn in mark.js from the same frame
+   loop as the mark so the page runs one animation, not two. */
+#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ── the mark, lined up with the right column of every card ─────────────── */
+.stage{position:fixed;z-index:1;top:var(--bar);bottom:0;
+  left:calc(var(--deckL) + var(--deck) * .54);
+  width:calc(var(--deck) * .46);pointer-events:none;
+  transition:left var(--t-dec) var(--ease),width var(--t-dec) var(--ease),bottom var(--t-dec) var(--ease)}
+/* On the landing the mark owns the page. Leaving the landing hands it to the
+   right column, and that handover is the transition into the site. */
+.at-landing .stage{left:var(--deckL);width:var(--deck);bottom:44%}
+/* the landing already says AXIS in type; the running label would sit on top of
+   the mark and repeat it */
+.at-landing .label{opacity:0}
+#mark{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* the real mark as flat vector, and what stays if the script never runs */
+.fallback{display:none;position:absolute;left:50%;top:50%;translate:-50% -50%;
+  width:78%;height:78%;max-width:none}
+/* the mark says which of his marks is in the frame, and settles into it */
+.label{position:absolute;left:0;right:0;bottom:clamp(16px,4vh,44px);text-align:center;
+  color:var(--ghost);transition:opacity .5s var(--ease)}
+
+/* ── the splash ─────────────────────────────────────────────────────────
+   The mark takes the whole screen first and everything else waits behind it.
+   When the splash lets go the stage travels to its landing box on its own
+   transition, so the diamonds the splash threw are already where the entrance
+   needs them: one move, not two. */
+/* The green is a background, not something the canvas paints, so it is there
+   on the very first paint rather than whenever the script gets its turn. The
+   screen is never blank waiting for the splash to start. */
+/* 430ms, so the green is gone before the splash hands over rather than still
+   a fifth of the way up when the page starts painting its own colours */
+html{transition:background-color 430ms var(--ease)}
+.top,.deck{transition:opacity 430ms var(--ease)}
+/* the splash's own rules are at the foot of this file; see the note there */
+
+/* ── the deck of cards ──────────────────────────────────────────────────── */
+.deck{position:relative;z-index:2;width:var(--deck);margin:0 auto}
+/* No frames. The card was drawn as a bordered box so the mark's motion had
+   something to start at, and on a tall screen that left the top edge pinned
+   under the bar with a slab of the next one showing below it. A screen is a
+   screen; it does not need a line around it to be one. */
+.card{
+  position:relative;
+  min-height:calc(100svh - var(--bar));
+  display:grid;grid-template-columns:54fr 46fr;align-items:center;
+  padding:clamp(20px,3vh,38px) 0;
+}
+.card:first-child{margin-top:var(--bar)}
+/* min-width:0, or a grid item's automatic minimum lets anything inside it
+   that will not wrap push the column wider than the screen. A nowrap prompt
+   in the ask bar was doing exactly that on a phone. */
+.said{grid-column:1;min-width:0;
+  padding:0 clamp(22px,2.6vw,46px) 0 clamp(26px,3vw,54px);max-width:56ch}
+
+/* The card's words arrive when the card does, which is the whole reason the
+   frame is here: the motion starts at a boundary instead of drifting. */
+.said > *{opacity:0;translate:0 16px;
+  transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
+.card.live .said > *{opacity:1;translate:0 0}
+.card.live .said > :nth-child(1){transition-delay:40ms}
+.card.live .said > :nth-child(2){transition-delay:80ms}
+.card.live .said > :nth-child(3){transition-delay:120ms}
+.card.live .said > :nth-child(4){transition-delay:160ms}
+.card.live .said > :nth-child(5){transition-delay:200ms}
+
+h1,h2{margin:0;font-weight:420;letter-spacing:-.043em;line-height:1.0;text-wrap:balance}
+h1{font-size:clamp(40px,5.6vw,80px);max-width:13ch}
+h2{font-size:clamp(32px,4.1vw,60px);max-width:16ch}
+em{font-style:normal;font-weight:700}
+/* the opening line of a page, when that line is the whole point of the page */
+h1.hero{font-size:clamp(42px,5.9vw,82px);font-weight:500;letter-spacing:-.052em;
+  line-height:.96;max-width:15ch}
+.sub{margin:20px 0 0;font-size:clamp(17px,1.4vw,21px);line-height:1.5;color:var(--dim);
+  max-width:42ch;text-wrap:pretty}
+p{margin:18px 0 0;color:var(--dim);max-width:50ch;text-wrap:pretty}
+p strong{color:var(--ink);font-weight:650}
+a{color:var(--ink)}
+/* one statement, carrying more weight than a subtitle and less than a heading */
+.lede{margin:24px 0 0;font-size:clamp(18px,1.6vw,24px);line-height:1.42;
+  color:var(--ink);font-weight:450;letter-spacing:-.018em;max-width:40ch;text-wrap:pretty}
+
+.ar{font-family:'PlexAr',serif;direction:rtl;text-align:right;
+  font-size:clamp(26px,3vw,42px);color:var(--acc);line-height:1.4;
+  margin:26px 0 0;max-width:none}
+
+/* headlines assemble word by word; the delays are classes because
+   style-src 'self' forbids the inline style attribute that would carry them */
+[data-assemble] .w{display:inline-block;opacity:0;translate:0 .4em;
+  transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
+[data-assemble].set .w{opacity:1;translate:0 0}
+.set .w.d0{transition-delay:0ms}   .set .w.d1{transition-delay:40ms}
+.set .w.d2{transition-delay:80ms}  .set .w.d3{transition-delay:120ms}
+.set .w.d4{transition-delay:160ms} .set .w.d5{transition-delay:200ms}
+.set .w.d6{transition-delay:240ms} .set .w.d7{transition-delay:280ms}
+.set .w.d8{transition-delay:320ms} .set .w.d9{transition-delay:360ms}
+.set .w.d10{transition-delay:400ms} .set .w.d11{transition-delay:440ms}
+
+/* ── one button to a card ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:13px;margin-top:34px;
+  padding:17px 28px;min-height:52px;border:1px solid var(--ink);
+  color:var(--ink);text-decoration:none;font-weight:600;font-size:16px;
+  transition:background var(--t-mid) var(--ease),color var(--t-mid) var(--ease),gap var(--t-mid) var(--ease)}
+/* No icon sits in a button. The X and the Mashmoom mark are the only two marks
+   on this site, and a small rotating diamond beside a label was a third. */
+.btn::after{content:'';width:0;height:1px;background:currentColor;
+  transition:width var(--t-mid) var(--ease)}
+.btn:hover{background:var(--ink);color:var(--cream);gap:19px;
+  transition:background var(--t-fast) var(--out),color var(--t-fast) var(--out),gap var(--t-base) var(--back)}
+.btn:hover::after{width:22px}
+/* the button that is not ready yet says so when you reach for it */
+.btn.soonly .on{display:inline}
+.btn.soonly .off{display:none}
+.btn.soonly:hover .on,.btn.soonly:focus-visible .on{display:none}
+.btn.soonly:hover .off,.btn.soonly:focus-visible .off{display:inline}
+
+/* the cut corner: the only move the X makes, and the only decoration allowed */
+.cut{clip-path:polygon(0 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%)}
+
+/* A row of anything needs the whole page. Squeezed into the half column that
+   the mark leaves, it wraps after two words. */
+.card.wide{grid-template-columns:1fr}
+.card.wide .said{max-width:none;padding-right:clamp(26px,3vw,54px)}
+.card.wide h2{max-width:22ch}
+.card.wide .sub{max-width:62ch}
+
+/* ── the right column, when a card brings its own visual ────────────────
+   The mark steps aside for these. One fixed canvas cannot hold a chart and a
+   conversation as well as the logo, and a page that shows the same object in
+   the same place on every screen is the slideshow problem all over again. */
+.stage-off .stage{opacity:0}
+.viz{grid-column:2;align-self:center;justify-self:center;width:100%;
+  max-width:560px;padding:0 clamp(16px,2vw,40px);
+  opacity:0;translate:0 20px;
+  transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
+.card.live .viz{opacity:1;translate:0 0;transition-delay:120ms}
+
+/* the conversation, typed out rather than photographed */
+.chat{display:flex;flex-direction:column;gap:13px}
+.bub{position:relative;padding:17px 21px;border:1px solid var(--hair);
+  background:var(--cream);font-size:17px;line-height:1.45;max-width:92%}
+.bub.me{align-self:flex-end;border-color:var(--acc-dim);color:var(--ink)}
+.bub.it{align-self:flex-start;color:var(--dim)}
+.bub.ar{font-family:'PlexAr',serif;direction:rtl;text-align:right;
+  font-size:19px;color:var(--ink);margin:0;max-width:92%}
+[data-type].pending{display:none}
+[data-type]:not(.done)::after{content:'';display:inline-block;width:2px;height:1.05em;
+  margin-left:3px;translate:0 3px;background:var(--acc);
+  animation:blink 1.15s steps(1) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* it is thinking */
+.thinking{display:flex;align-items:center;gap:13px;align-self:flex-start;
+  color:var(--ghost);opacity:0;translate:0 6px;
+  transition:opacity .45s var(--ease),translate .45s var(--ease)}
+.thinking.on{opacity:1;translate:0 0}
+
+/* the slot, with a name being set into it */
+.nameplate{border:1px solid var(--hair);background:var(--cream);
+  padding:clamp(32px,5vh,52px) 28px;text-align:center}
+.nameplate .who{display:block;min-height:1.3em;font-size:clamp(24px,2.6vw,38px);
+  font-weight:700;letter-spacing:-.03em;color:var(--acc)}
+.nameplate .mono{display:block;margin-top:16px;color:var(--ghost)}
+
+/* ── the landing ────────────────────────────────────────────────────────
+   The first screen is the lockup and nothing else. No headline competing with
+   it, no button, no product. You arrive, AXIS builds itself out of his own
+   wordmark, and the only thing asked of you is to keep going. */
+.card.landing{grid-template-columns:1fr;align-items:end;justify-items:center;
+  text-align:center;padding-bottom:clamp(34px,8vh,96px)}
+.card.landing .said{padding:0 var(--pad);max-width:none}
+.landing .wordline{font-size:clamp(30px,3.8vw,52px);font-weight:450;
+  letter-spacing:-.04em;margin:0}
+.landing .wordline b{font-weight:700}
+.landing .sub{margin:14px auto 0;max-width:46ch}
+.cue{display:inline-flex;align-items:center;gap:12px;margin-top:clamp(22px,4vh,44px);
+  color:var(--ghost)}
+.cue::after{content:'';width:34px;height:1px;background:var(--hair);
+  animation:reach 2.5s var(--ease) infinite}
+@keyframes reach{0%,100%{width:18px;opacity:.5}50%{width:40px;opacity:1}}
+
+/* ── the ask bar ────────────────────────────────────────────────────────
+   The first screen of a product page should show the product. There is no
+   live Mashmoom to embed yet, so the hero holds the thing you would type into,
+   with the prompts writing themselves in it and taking themselves back out.
+   Nothing else is in the bar: a logo sitting in a text field is the one place
+   a logo has no business being. */
+.ask{display:flex;align-items:center;margin:30px 0 0;
+  padding:19px 22px;border:1px solid var(--hair);background:var(--cream);
+  max-width:52ch;transition:border-color var(--t-mid) var(--ease)}
+.ask:hover{border-color:var(--acc-dim);transition:border-color var(--t-fast) var(--out)}
+.ask .cycle{flex:1;min-width:0;height:1.45em;font-size:clamp(16px,1.35vw,19px);
+  font-weight:450;letter-spacing:0}
+/* The caret sits at the end of what has been typed so far and travels with it.
+   Parked at the left of the bar it read as a cursor stuck behind the text. */
+.ask .typed{display:block;white-space:nowrap;overflow:hidden;color:var(--dim)}
+/* an Arabic prompt is typed from the right edge of the bar, like it would be */
+.ask .typed[dir="rtl"]{text-align:right;font-family:'PlexAr',serif}
+.ask .typed::after{content:'';display:inline-block;width:2px;height:1.1em;
+  margin-inline-start:2px;translate:0 2px;background:var(--acc)}
+/* solid while the keys are going in; it only blinks once the line stops */
+.ask .typed.rest::after{animation:blink 1.15s steps(1) infinite}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TWO PAGES IN ONE
+
+   The doors off the home page, split by a single hairline rather than set as
+   two cards side by side. The icons are drawn for these two doors and nothing
+   else: a lattice of diamonds pretending to be a pictogram read as neither the
+   mark nor an icon, so these are solid wedges cut on the same 45° the X is.
+   ═══════════════════════════════════════════════════════════════════════ */
+.split{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;margin:36px 0 0;
+  align-items:stretch}
+.split .rule{background:var(--hair)}
+.half{padding:6px clamp(22px,3vw,52px);text-decoration:none;color:inherit;display:block;
+  transition:padding-left var(--t-mid) var(--ease)}
+.half:first-child{padding-left:0}
+.half:last-child{padding-right:0}
+a.half:hover{padding-left:clamp(28px,3.6vw,60px);transition:padding-left var(--t-base) var(--out)}
+a.half:first-child:hover{padding-left:12px}
+.half .ic2{display:block;width:50px;height:50px;color:var(--teal-deep);
+  transition:color var(--t-mid) var(--ease),translate var(--t-mid) var(--ease)}
+.half .ic2 svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none}
+a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
+  transition:color var(--t-fast) var(--out),translate var(--t-base) var(--back)}
+.half b{display:block;margin:20px 0 0;font-size:clamp(21px,2vw,28px);font-weight:650;
+  letter-spacing:-.025em;color:var(--ink)}
+.half p{margin:8px 0 0;font-size:17px;max-width:30ch}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MISSION AND VISION
+
+   The two words at the size of the words they are, with the statement under
+   each and the country sitting beside them. Two bordered panels was the first
+   draft and it read like a company handbook.
+   ═══════════════════════════════════════════════════════════════════════ */
+.decls{margin:26px 0 0;display:grid}
+.decl h2{font-size:clamp(27px,2.7vw,40px);font-weight:700;letter-spacing:-.034em;
+  line-height:1;max-width:none}
+.decl p{margin:14px 0 0;font-size:clamp(18px,1.55vw,23px);line-height:1.38;
+  color:var(--dim);letter-spacing:-.014em;max-width:32ch}
+.decl + .decl{margin-top:clamp(28px,4vh,48px);padding-top:clamp(28px,4vh,48px);
+  border-top:1px solid var(--hair)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE VALUES
+
+   Five lines, each one a thing you can reach for. The gloss under a value is
+   the sentence that would otherwise be buried in a paragraph nobody reads, so
+   it waits until you are actually on that value. Reaching for one dims the
+   other four, which is the only way five statements of equal weight can be
+   read one at a time.
+   ═══════════════════════════════════════════════════════════════════════ */
+.creed{margin:32px 0 0;border-top:1px solid var(--hair)}
+.cv{position:relative;padding:clamp(15px,2.2vh,26px) 0 clamp(15px,2.2vh,26px) 46px;
+  border-bottom:1px solid var(--hair);will-change:transform}
+/* a diamond, locking into place beside the line that will not move */
+.cv::before{content:'';position:absolute;left:4px;top:50%;width:13px;height:13px;
+  background:var(--acc);translate:0 -50%;scale:0;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  transition:scale var(--t-mid) var(--ease)}
+.cv.held::before{scale:1;transition:scale var(--t-base) var(--back)}
+.cv b{display:block;font-size:clamp(21px,2.4vw,34px);font-weight:450;
+  letter-spacing:-.032em;line-height:1.1;color:var(--ink);max-width:28ch;
+  transition:color var(--t-mid) var(--ease)}
+@media (hover:hover){
+  .creed.reading .cv b{color:var(--faint);transition:color var(--t-base) var(--out)}
+  .creed.reading .cv.held b{color:var(--ink)}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHAT YOU WOULD BE BACKING
+
+   Four plain answers, numbered in the margin at a size that carries the page.
+   The number is the only ornament and it is ghosted until you are on its
+   answer.
+   ═══════════════════════════════════════════════════════════════════════ */
+.backing{margin:32px 0 0;counter-reset:b}
+.bk{counter-increment:b;position:relative;border-top:1px solid var(--hair);
+  padding:clamp(16px,2.3vh,26px) 0 clamp(16px,2.3vh,26px) clamp(62px,7vw,138px)}
+.bk:last-child{border-bottom:1px solid var(--hair)}
+.bk::before{content:counter(b,decimal-leading-zero);position:absolute;left:0;
+  top:clamp(14px,2vh,24px);line-height:.8;
+  font-family:'Azeret',ui-monospace,monospace;font-size:clamp(32px,4.2vw,66px);
+  letter-spacing:-.05em;color:rgba(255,251,247,.11);
+  transition:color var(--t-mid) var(--ease)}
+.bk:hover::before{color:var(--acc);transition:color var(--t-base) var(--out)}
+.bk b{display:block;font-size:clamp(19px,1.9vw,26px);font-weight:450;
+  letter-spacing:-.03em;line-height:1.16;color:var(--ink);max-width:50ch}
+.bk p{margin:10px 0 0;font-size:15.5px;line-height:1.48;color:var(--dim);max-width:80ch}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE WALL
+
+   What Mashmoom does, at the size of the claim. Six bullet points said
+   "we shipped six features"; a wall of thirteen words in two languages says
+   the thing it is: a model with Python in its hands. One line of detail sits
+   under the wall and follows whichever word you are on, and walks itself when
+   nobody is touching it.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* the belt. Words run across, whatever is at the middle is live, and the mark
+   beside it is building that thing. Hard edges, no fade: a gradient mask is the
+   one place a gradient always sneaks back in. */
+/* min-width:0, or the belt's max-content width blows the grid track out and
+   the words run straight across the mark */
+.wall{display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:clamp(2px,.5vh,10px) clamp(18px,2vw,34px);margin:clamp(24px,3vh,38px) 0 0}
+.wd{appearance:none;-webkit-appearance:none;background:none;border:0;margin:0;
+  padding:10px 0;cursor:pointer;font-family:inherit;line-height:1;
+  font-size:clamp(26px,2.9vw,46px);font-weight:450;letter-spacing:-.04em;
+  color:var(--faint);position:relative;
+  transition:color var(--t-mid) var(--ease)}
+.wd:hover{transition:color var(--t-fast) var(--out)}
+.wd{white-space:nowrap}
+.wd:hover,.wd.on{color:var(--ink)}
+.wd.ar{font-family:'PlexAr',serif;font-size:clamp(24px,2.7vw,42px);letter-spacing:0}
+/* the live one is underlined, drawn fast and released slow */
+.wd::after{content:'';position:absolute;left:0;right:100%;bottom:4px;height:2px;
+  background:var(--acc);transition:right var(--t-mid) var(--ease)}
+.wd.on::after,.wd:hover::after{right:0;transition:right var(--t-base) var(--out)}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHERE IT STAYS
+
+   Said once, in prose, with a stamp under it. Three reassuring boxes in a row
+   is exactly how a privacy claim stops being believed.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* three statements, not three reassuring panels in a row */
+.says{margin:clamp(26px,3.2vh,36px) 0 0;border-top:1px solid var(--hair)}
+.says p{margin:0;padding:clamp(15px,2.1vh,24px) 0;border-bottom:1px solid var(--hair);
+  max-width:36ch;color:var(--ink);
+  font-size:clamp(18px,1.7vw,25px);line-height:1.3;letter-spacing:-.024em;
+  transition:padding-left var(--t-mid) var(--ease)}
+.says p:hover{padding-left:16px;transition:padding-left var(--t-base) var(--out)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHAT COMES NEXT
+
+   Not two ideas in two panels. Each one takes a band of the page, says what it
+   is in one sentence at statement size, and brings something that moves,
+   because these are the two things people will actually wait for.
+   ═══════════════════════════════════════════════════════════════════════ */
+.coming{margin:32px 0 0;border-top:1px solid var(--hair)}
+.cap{display:grid;
+  grid-template-columns:minmax(0,8ch) minmax(0,1fr) minmax(0,clamp(150px,20vw,320px));
+  gap:clamp(18px,3vw,54px);align-items:center;
+  padding:clamp(24px,3.8vh,44px) 0;border-bottom:1px solid var(--hair)}
+.cap .mono{color:var(--acc-lo);align-self:start;padding-top:.65em}
+.cap p{margin:0;font-size:clamp(20px,2.2vw,32px);line-height:1.2;
+  letter-spacing:-.03em;color:var(--ink);max-width:28ch}
+
+/* speech: a level meter, not a microphone pictogram */
+.wave{display:flex;align-items:center;gap:clamp(3px,.5vw,6px);
+  height:clamp(52px,6vw,78px);width:100%}
+.wave i{flex:1;height:100%;background:var(--acc);opacity:.72;
+  transform-origin:50% 50%;scale:1 .1;
+  animation:wv 1.9s ease-in-out infinite}
+@keyframes wv{0%,100%{scale:1 .1}50%{scale:1 1}}
+.wave i:nth-child(1){animation-delay:-0.00s}
+.wave i:nth-child(2){animation-delay:-0.12s}
+.wave i:nth-child(3){animation-delay:-0.28s}
+.wave i:nth-child(4){animation-delay:-0.48s}
+.wave i:nth-child(5){animation-delay:-0.66s}
+.wave i:nth-child(6){animation-delay:-0.87s}
+.wave i:nth-child(7){animation-delay:-1.06s}
+.wave i:nth-child(8){animation-delay:-1.22s}
+.wave i:nth-child(9){animation-delay:-1.42s}
+.wave i:nth-child(10){animation-delay:-1.57s}
+.wave i:nth-child(11){animation-delay:-1.72s}
+.wave i:nth-child(12){animation-delay:-0.36s}
+.wave i:nth-child(13){animation-delay:-0.56s}
+.wave i:nth-child(14){animation-delay:-0.76s}
+.wave i:nth-child(15){animation-delay:-0.97s}
+.wave i:nth-child(16){animation-delay:-1.14s}
+
+/* pictures: an image resolving. A bar filling left to right is a download,
+   which is the opposite of what is happening. This comes in out of order, the
+   way a picture actually arrives, and lets go again. */
+.gen{display:grid;grid-template-columns:repeat(14,1fr);gap:2px;
+  width:100%;height:clamp(52px,6vw,78px)}
+.gen i{display:block;background:var(--acc);opacity:0;border-radius:0;
+  animation:res 3.2s ease-in-out infinite}
+@keyframes res{
+  0%{opacity:0;scale:.25}
+  9%{opacity:.95;scale:1}
+  46%{opacity:.6;scale:1}
+  70%{opacity:.22;scale:1}
+  100%{opacity:0;scale:.25}}
+
+/* ── reaching us, one screen, nothing to scroll ─────────────────────────── */
+.plain{margin:34px 0 0;display:grid;gap:0;max-width:40ch}
+.plain a,.plain span{display:block;padding:17px 0;border-top:1px solid var(--hair);
+  font-size:clamp(20px,1.9vw,27px);letter-spacing:-.02em;color:var(--ink);
+  text-decoration:none;transition:color var(--t-mid) var(--ease),padding-left var(--t-mid) var(--ease)}
+.plain > :last-child{border-bottom:1px solid var(--hair)}
+.plain a:hover{color:var(--acc);padding-left:12px;
+  transition:color var(--t-fast) var(--out),padding-left var(--t-base) var(--out)}
+.plain em{display:block;font-style:normal;font-family:'Azeret',ui-monospace,monospace;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ghost);
+  margin-bottom:6px}
+.one .card{min-height:calc(100svh - var(--bar))}
+.one .deck{width:var(--deck)}
+
+/* ── narrow: the mark pins above the reading, opaque, never under the words ── */
+@media (max-width:900px){
+  .fallback{width:88%;height:88%}
+  /* the mark is a band under the bar here, so the landing cannot hand it the
+     middle of the page: it would land on top of the words */
+  .at-landing .stage{left:0;width:100%;bottom:auto}
+  .card.landing{align-items:center;padding-bottom:clamp(26px,6vh,60px)}
+  .at-landing .label{opacity:1}
+  .stage{top:var(--bar);left:0;right:0;width:100%;height:28svh;bottom:auto;
+         z-index:3;background:var(--cream);border-bottom:1px solid var(--hair)}
+  .label{bottom:7px}
+  html{scroll-padding-top:calc(var(--bar) + 28svh)}
+  .card{grid-template-columns:1fr;align-items:start;
+        min-height:calc(100svh - var(--bar) - 28svh);
+        padding:clamp(26px,4vh,44px) 0}
+  .card:first-child{margin-top:calc(var(--bar) + 28svh)}
+  .said{padding:0 clamp(20px,5vw,32px);max-width:none}
+  .viz{grid-column:1;max-width:none;padding:0 clamp(20px,5vw,32px);margin-top:26px}
+  /* The band is fixed, so it takes no space in the flow and only headroom()
+     ever counted it. Collapsing its height here instead would resize the mark
+     canvas to nothing and pop it back on the next card. */
+  .stage-off .stage{opacity:0;pointer-events:none}
+  h1{font-size:clamp(34px,9vw,52px);max-width:none}
+  h2{font-size:clamp(30px,8vw,46px);max-width:none}
+  h1.hero{font-size:clamp(36px,9.6vw,56px);max-width:none}
+  .sub{font-size:16px;margin-top:20px}
+  .btn{margin-top:26px;padding:15px 22px}
+  .top{padding:0 clamp(16px,4vw,26px)}
+  .top nav{gap:clamp(12px,3.4vw,20px)}
+  .top nav a{font-size:13px}
+  /* the split becomes two pages stacked, still parted by one hairline */
+  .split{grid-template-columns:1fr;margin-top:28px}
+  .split .rule{height:1px;margin:28px 0}
+  .half,.half:first-child,.half:last-child{padding:0}
+  a.half:hover,a.half:first-child:hover{padding-left:0}
+  .creed:hover .cv b{color:var(--ink)}
+  .cap{grid-template-columns:1fr;gap:16px;align-items:start}
+  .cap .mono{padding-top:0}
+  .bk{padding-left:clamp(52px,14vw,78px)}
+}
+@media (max-width:560px){
+  /* Five pages will not sit beside the wordmark on a phone, so the bar becomes
+     two rows rather than overlapping itself. */
+  :root{--pad:14px;--bar:104px}
+  .top{height:var(--bar);flex-direction:column;align-items:flex-start;
+       justify-content:center;gap:2px}
+  .top nav{width:100%;justify-content:space-between;gap:0}
+  .brand{letter-spacing:.14em;gap:7px;min-height:34px}
+  .top nav a{font-size:12px;padding:8px 0;min-height:34px}
+  .top nav a::after{bottom:6px}
+  .ask{max-width:none}
+  .ask .cycle{font-size:15px}
+  .wall{gap:2px clamp(14px,4vw,22px)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:1ms!important;animation-duration:1ms!important}
+  [data-assemble] .w,.said > *{opacity:1;translate:0 0}
+  .wave i{scale:1 .55}
+  .frame span{width:100%;opacity:1}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE SPLASH, LAST WORD
+
+   These sit at the end of the file deliberately. In the phone layout the stage
+   is re-declared as a short band under the bar with a height, a background and
+   a border of its own, and a splash rule sitting further up the file loses to
+   it: the whole thing was being drawn into a 236px dark strip at the top of
+   the screen, with the green showing below it and the running label scrambling
+   away on top of the lot. It has to be the last word, and it has to unset each
+   of those properties rather than assume them.
+
+   The cast is the last beat, where the X flies into the lockup at the place
+   the landing wants it. The green drains and the page comes up underneath
+   while that is happening, so nothing waits for anything else and there is
+   never a frame with nothing on it.
+   ═══════════════════════════════════════════════════════════════════════ */
+html.splash{background:#498E82}
+html.splash.cast{background:var(--cream)}
+.splash body{background:transparent}
+.splash .stage{left:0;right:0;top:0;bottom:0;width:100vw;height:100svh;
+  background:none;border:0;z-index:3;transition:none}
+.splash .top,.splash .deck{opacity:0;pointer-events:none}
+.splash.cast .top,.splash.cast .deck{opacity:1}
+.splash .label,.splash.cast .label{opacity:0}
+/* the two frames where the stage changes box, with the mark already standing
+   in its final place: animated, it would visibly drift */
+.justland .stage{transition:none}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://axis.bh/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://axis.bh/og/og-axis.png</image:loc>
+      <image:title>Axis — The first AI built entirely in Bahrain</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://axis.bh/mashmoom.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://axis.bh/og/og-mashmoom.png</image:loc>
+      <image:title>Mashmoom — the first AI that speaks Bahraini Arabic</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://axis.bh/axis.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://axis.bh/og/og-about.png</image:loc>
+      <image:title>About Axis — the team building Bahrain's own AI</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://axis.bh/sponsor.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://axis.bh/og/og-sponsor.png</image:loc>
+      <image:title>Sponsor Mashmoom — Bahrain's own AI | Axis</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://axis.bh/contact.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <image:image>
+      <image:loc>https://axis.bh/og/og-contact.png</image:loc>
+      <image:title>Contact Axis — Bahrain's own AI team</image:title>
+    </image:image>
+  </url>
+</urlset>

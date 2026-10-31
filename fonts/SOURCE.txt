@@ -1,0 +1,14 @@
+Switzer — Indian Type Foundry (Fontshare)
+Designer: Jeremie Hornus
+Licence: ITF Free Font License — free for personal and commercial use.
+Source: https://www.fontshare.com/fonts/switzer
+Downloaded 2026-10-27, variable woff2, self-hosted so the site makes no third-party requests.
+
+Azeret Mono — Displaay Type Foundry via Fontshare (ITF Free Font License).
+
+Source: https://www.fontshare.com/fonts/azeret-mono
+
+Downloaded 2026-10-27. Used for the annotation layer only.
+
+IBM Plex Sans Arabic — Bold Monday for IBM. SIL Open Font License 1.1.
+Arabic subset only, 400 and 600. Self-hosted.

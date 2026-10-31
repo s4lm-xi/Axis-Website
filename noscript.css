@@ -1,0 +1,13 @@
+/* Only reached when scripts do not run. The flat mark takes the canvas's place
+   and every card shows its words, so the page is complete rather than half
+   empty. Loaded from inside <noscript> because style-src 'self' forbids an
+   inline <style> block. */
+.fallback{display:block}
+#mark,.label{display:none}
+[data-assemble] .w,.said > *{opacity:1;translate:0 0}
+.cv span{opacity:1;translate:0 0}
+/* the wall's one shared detail line follows the cursor, so it goes away */
+.say{display:none}
+/* no script, no splash: the page must not stay behind a curtain */
+.splash .top,.splash .deck{opacity:1;pointer-events:auto}
+.splash .stage{left:0;right:0;width:100vw;top:0;bottom:0}
