@@ -35,6 +35,9 @@ var cv = document.getElementById('mark');
 if (!cv) return;
 var ctx = cv.getContext('2d');
 var reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* a finger, not a cursor: nothing on a phone should answer a hover that is
+   really the start of a scroll */
+var coarse = matchMedia('(hover:none),(pointer:coarse)').matches;
 
 /* ── his geometry, path for path ────────────────────────────────────────── */
 var ARMS = ['M3000 3000H2440L1600 2160L2160 1600L3000 2440V3000Z',
@@ -509,7 +512,7 @@ document.addEventListener('click', function (e) {
 function build() {
   DPR = Math.min(devicePixelRatio || 1, 2);
   var box = cv.getBoundingClientRect();
-  W = Math.max(1, box.width); H = Math.max(1, box.height);
+  W = Math.max(1, box.width); H = Math.max(1, box.height); BW = W; BH = H;
   cv.width = W * DPR; cv.height = H * DPR;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
@@ -858,7 +861,10 @@ var CX2 = null, CY2 = null, CN2 = 0, CPITCH = 0;
 var BUCK = [], BCNT = [], BALPHA = [], HOTP = new Float32Array(144), hotN = 0;
 function fieldBuild() {
   if (!fctx) return;
-  FW = innerWidth; FH = innerHeight;
+  /* the field's own box, which is 100lvh: a phone's URL bar coming and going
+     changes innerHeight but not this, so the bitmap is never stretched */
+  var fb = fcv.getBoundingClientRect();
+  FW = Math.round(fb.width) || innerWidth; FH = Math.round(fb.height) || innerHeight;
   /* The field is a wash of 3px diamonds behind the words. Drawn at devicePixel
      ratio on a 1920 display that is an 8.3 megapixel clear and fill every
      frame, which is most of why it was not holding 60. At 1 it is 2 megapixel
@@ -1009,6 +1015,17 @@ function mixRGB(r1, g1, b1, r2, g2, b2, t) {
                   Math.round(g1 + (g2 - g1) * t) + ',' +
                   Math.round(b1 + (b2 - b1) * t) + ')';
 }
+/* the small viewport height (URL bar showing), which is what the CSS band is
+   sized in; innerHeight grows when the bar hides and the mark landed too big */
+var probe = null;
+function svh() {
+  if (!probe) {
+    probe = document.createElement('div');
+    probe.className = 'svh-probe'; probe.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(probe);
+  }
+  return probe.getBoundingClientRect().height || innerHeight;
+}
 function landingBox() {
   var dk = document.querySelector('.deck'), tb = document.querySelector('.top');
   if (!dk || !tb) return null;
@@ -1017,7 +1034,7 @@ function landingBox() {
      giving it the middle of the page, so the target is a different box */
   var narrow = innerWidth <= 900;
   var lw = narrow ? innerWidth : r.width;
-  var lh = narrow ? innerHeight * 0.28 : innerHeight * 0.56 - bh;
+  var lh = narrow ? svh() * 0.28 : innerHeight * 0.56 - bh;
   if (!(lw > 0) || !(lh > 0)) return null;
   var f = FORMS.word, dw = 1, dh = f.h / f.w;
   var fit = Math.min(lw * 0.96 / dw, lh * 0.92 / dh);
@@ -1606,7 +1623,7 @@ function typeOut(card) {
    blocks a style attribute sitting in the markup, not the CSSOM. */
 (function () {
   var creed = document.querySelector('.creed');
-  if (!creed || reduced) return;
+  if (!creed || reduced || coarse) return;   /* on a phone the rows would jiggle under a scrolling thumb */
   var rows = [].slice.call(creed.querySelectorAll('.cv'));
   if (rows.length < 2) return;
   var SHOVE = 26, SPAN = 190;
@@ -1663,6 +1680,7 @@ function applyCard(el, quiet) {
   if (hover !== null) held = el.dataset.form;
   else morphTo(el.dataset.form, quiet || intro);
   if (label && el.dataset.label) settleTo(label, el.dataset.label);
+  el.classList.add('seen');
   cards.forEach(function (c) { c.classList.toggle('live', c === el); });
 }
 
@@ -1704,8 +1722,15 @@ function snapGuard() {
   var room = innerHeight - headroom();
   var tall = false;
   cards.forEach(function (c) {
-    var inner = c.firstElementChild;
-    var hgt = inner ? inner.scrollHeight : c.scrollHeight;
+    /* every child, not just the words: on a phone the card's visual stacks
+       under them, and counting only the first left a tall card snapping */
+    var top = Infinity, bot = -Infinity;
+    for (var k = 0; k < c.children.length; k++) {
+      var r = c.children[k].getBoundingClientRect();
+      if (!r.height) continue;
+      top = Math.min(top, r.top); bot = Math.max(bot, r.bottom);
+    }
+    var hgt = bot > top ? bot - top : c.scrollHeight;
     if (hgt > room - 28) tall = true;
   });
   loose = tall;
@@ -1759,7 +1784,10 @@ addEventListener('keydown', function (e) {
 });
 var ty0 = null;
 addEventListener('touchstart', function (e) {
-  ty0 = (loose || ownScroll(e.target)) ? null : e.touches[0].clientY;
+  /* On a phone the cards page by native scroll-snap (site.css). Driving a
+     smooth scrollTo from touchend fought the finger's own momentum and the
+     page overshot and snapped back. */
+  ty0 = (coarse || loose || ownScroll(e.target)) ? null : e.touches[0].clientY;
 }, { passive: true });
 addEventListener('touchend', function (e) {
   if (ty0 === null) return;
@@ -1841,16 +1869,28 @@ function peekBack() {
 });
 
 addEventListener('pointermove', function (e) {
+  /* a finger dragging is a scroll, not a cursor; left in, the mark kept a hole
+     where the thumb last lifted */
+  if (e.pointerType === 'touch') { mx = my = vmx = vmy = -9e9; return; }
   var b = cv.getBoundingClientRect();
   mx = e.clientX - b.left; my = e.clientY - b.top;
   vmx = e.clientX; vmy = e.clientY;
 }, { passive: true });
 addEventListener('pointerleave', function () { mx = my = -9e9; vmx = vmy = -9e9; });
-var rt = 0;
+var rt = 0, lastW = innerWidth, BW = 0, BH = 0;
 addEventListener('resize', function () {
   clearTimeout(rt);
   rt = setTimeout(function () {
-    build(); snapGuard();
+    /* A phone's URL bar showing or hiding is a height-only resize that moves
+       neither canvas (the band is svh, the field lvh). Rebuilding for it
+       resampled every formation mid-scroll and the mark jumped. */
+    var mb = cv.getBoundingClientRect(), fb = fctx ? fcv.getBoundingClientRect() : null;
+    var still = Math.abs(innerWidth - lastW) < 2 &&
+      Math.abs(mb.width - BW) < 1 && Math.abs(mb.height - BH) < 1 &&
+      (!fb || Math.abs(Math.round(fb.height) - FH) < 2);
+    lastW = innerWidth;
+    if (!still) build();
+    snapGuard();
     /* the headroom changes with the layout, and it is baked into the observer */
     if (typeof watchCards === 'function') watchCards();
   }, 140);

@@ -66,6 +66,7 @@
 *,*::before,*::after{box-sizing:border-box}
 html{
   -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
   scroll-padding-top:var(--bar);
 }
 /* One notch moves one card, and mark.js drives that directly. CSS snapping is
@@ -99,7 +100,7 @@ body{
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);
   font-weight:600;letter-spacing:.26em;font-size:13px;min-height:44px}
 .brand svg{width:19px;height:19px;transition:transform .9s var(--ease)}
-.brand:hover svg{transform:rotate(90deg)}
+@media (hover:hover){.brand:hover svg{transform:rotate(90deg)}}
 /* One diamond for the whole bar. It rests under the page you are on and runs
    to whatever you reach for, which is the same thing the mark does behind it:
    the bar answers before the click lands. Five separate underlines appearing
@@ -109,8 +110,10 @@ body{
   font-weight:500;padding:12px 0;min-height:44px;display:inline-flex;align-items:center;
   letter-spacing:0;
   transition:color var(--t-mid) var(--ease),letter-spacing var(--t-mid) var(--ease),translate var(--t-mid) var(--ease)}
+@media (hover:hover){
 .top nav a:hover{color:var(--ink);letter-spacing:.035em;translate:0 -2px;
   transition:color var(--t-fast) var(--out),letter-spacing var(--t-base) var(--back),translate var(--t-base) var(--back)}
+}
 .top nav a[aria-current="page"]{color:var(--ink);font-weight:600}
 .navmark{position:absolute;left:0;bottom:9px;width:9px;height:9px;margin-left:-4.5px;
   background:var(--acc);pointer-events:none;opacity:0;
@@ -122,13 +125,18 @@ body{
 /* ── the field ──────────────────────────────────────────────────────────
    Behind everything, always moving. Drawn in mark.js from the same frame
    loop as the mark so the page runs one animation, not two. */
-#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+/* 100lvh, not inset:0: on a phone the URL bar coming and going resized a fixed
+   full-screen box and stretched the bitmap until the next rebuild */
+#field{position:fixed;inset:0 0 auto 0;width:100%;height:100vh;height:100lvh;z-index:0;pointer-events:none}
+.svh-probe{position:fixed;top:0;left:0;width:0;height:100vh;height:100svh;
+  visibility:hidden;pointer-events:none}
 
 /* ── the mark, lined up with the right column of every card ─────────────── */
 .stage{position:fixed;z-index:1;top:var(--bar);bottom:0;
   left:calc(var(--deckL) + var(--deck) * .54);
   width:calc(var(--deck) * .46);pointer-events:none;
-  transition:left var(--t-dec) var(--ease),width var(--t-dec) var(--ease),bottom var(--t-dec) var(--ease)}
+  transition:left var(--t-dec) var(--ease),width var(--t-dec) var(--ease),bottom var(--t-dec) var(--ease),
+             opacity var(--t-mid) var(--ease)}
 /* On the landing the mark owns the page. Leaving the landing hands it to the
    right column, and that handover is the transition into the site. */
 .at-landing .stage{left:var(--deckL);width:var(--deck);bottom:44%}
@@ -228,14 +236,27 @@ a{color:var(--ink)}
    on this site, and a small rotating diamond beside a label was a third. */
 .btn::after{content:'';width:0;height:1px;background:currentColor;
   transition:width var(--t-mid) var(--ease)}
+/* Hover only where there is a cursor. On a phone a tap leaves :hover stuck on
+   whatever was touched, so the button stayed inverted after you came back. */
+@media (hover:hover){
 .btn:hover{background:var(--ink);color:var(--cream);gap:19px;
   transition:background var(--t-fast) var(--out),color var(--t-fast) var(--out),gap var(--t-base) var(--back)}
 .btn:hover::after{width:22px}
+}
+@media (hover:none){
+  .btn:active{background:var(--ink);color:var(--cream);transition:none}
+  .btn.soonly:active .on{display:none}
+  .btn.soonly:active .off{display:inline}
+}
 /* the button that is not ready yet says so when you reach for it */
 .btn.soonly .on{display:inline}
 .btn.soonly .off{display:none}
-.btn.soonly:hover .on,.btn.soonly:focus-visible .on{display:none}
-.btn.soonly:hover .off,.btn.soonly:focus-visible .off{display:inline}
+.btn.soonly:focus-visible .on{display:none}
+.btn.soonly:focus-visible .off{display:inline}
+@media (hover:hover){
+  .btn.soonly:hover .on{display:none}
+  .btn.soonly:hover .off{display:inline}
+}
 
 /* the cut corner: the only move the X makes, and the only decoration allowed */
 .cut{clip-path:polygon(0 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%)}
@@ -311,7 +332,7 @@ a{color:var(--ink)}
 .ask{display:flex;align-items:center;margin:30px 0 0;
   padding:19px 22px;border:1px solid var(--hair);background:var(--cream);
   max-width:52ch;transition:border-color var(--t-mid) var(--ease)}
-.ask:hover{border-color:var(--acc-dim);transition:border-color var(--t-fast) var(--out)}
+@media (hover:hover){.ask:hover{border-color:var(--acc-dim);transition:border-color var(--t-fast) var(--out)}}
 .ask .cycle{flex:1;min-width:0;height:1.45em;font-size:clamp(16px,1.35vw,19px);
   font-weight:450;letter-spacing:0}
 /* The caret sits at the end of what has been typed so far and travels with it.
@@ -339,13 +360,17 @@ a{color:var(--ink)}
   transition:padding-left var(--t-mid) var(--ease)}
 .half:first-child{padding-left:0}
 .half:last-child{padding-right:0}
+@media (hover:hover){
 a.half:hover{padding-left:clamp(28px,3.6vw,60px);transition:padding-left var(--t-base) var(--out)}
 a.half:first-child:hover{padding-left:12px}
+}
 .half .ic2{display:block;width:50px;height:50px;color:var(--teal-deep);
   transition:color var(--t-mid) var(--ease),translate var(--t-mid) var(--ease)}
 .half .ic2 svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none}
+@media (hover:hover){
 a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   transition:color var(--t-fast) var(--out),translate var(--t-base) var(--back)}
+}
 .half b{display:block;margin:20px 0 0;font-size:clamp(21px,2vw,28px);font-weight:650;
   letter-spacing:-.025em;color:var(--ink)}
 .half p{margin:8px 0 0;font-size:17px;max-width:30ch}
@@ -407,7 +432,7 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   font-family:'Azeret',ui-monospace,monospace;font-size:clamp(32px,4.2vw,66px);
   letter-spacing:-.05em;color:rgba(255,251,247,.11);
   transition:color var(--t-mid) var(--ease)}
-.bk:hover::before{color:var(--acc);transition:color var(--t-base) var(--out)}
+@media (hover:hover){.bk:hover::before{color:var(--acc);transition:color var(--t-base) var(--out)}}
 .bk b{display:block;font-size:clamp(19px,1.9vw,26px);font-weight:450;
   letter-spacing:-.03em;line-height:1.16;color:var(--ink);max-width:50ch}
 .bk p{margin:10px 0 0;font-size:15.5px;line-height:1.48;color:var(--dim);max-width:80ch}
@@ -433,14 +458,17 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   font-size:clamp(26px,2.9vw,46px);font-weight:450;letter-spacing:-.04em;
   color:var(--faint);position:relative;
   transition:color var(--t-mid) var(--ease)}
-.wd:hover{transition:color var(--t-fast) var(--out)}
 .wd{white-space:nowrap}
-.wd:hover,.wd.on{color:var(--ink)}
+.wd.on{color:var(--ink)}
+@media (hover:hover){
+  .wd:hover{color:var(--ink);transition:color var(--t-fast) var(--out)}
+  .wd:hover::after{right:0;transition:right var(--t-base) var(--out)}
+}
 .wd.ar{font-family:'PlexAr',serif;font-size:clamp(24px,2.7vw,42px);letter-spacing:0}
 /* the live one is underlined, drawn fast and released slow */
 .wd::after{content:'';position:absolute;left:0;right:100%;bottom:4px;height:2px;
   background:var(--acc);transition:right var(--t-mid) var(--ease)}
-.wd.on::after,.wd:hover::after{right:0;transition:right var(--t-base) var(--out)}
+.wd.on::after{right:0;transition:right var(--t-base) var(--out)}
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -455,7 +483,7 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   max-width:36ch;color:var(--ink);
   font-size:clamp(18px,1.7vw,25px);line-height:1.3;letter-spacing:-.024em;
   transition:padding-left var(--t-mid) var(--ease)}
-.says p:hover{padding-left:16px;transition:padding-left var(--t-base) var(--out)}
+@media (hover:hover){.says p:hover{padding-left:16px;transition:padding-left var(--t-base) var(--out)}}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WHAT COMES NEXT
@@ -517,8 +545,10 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   font-size:clamp(20px,1.9vw,27px);letter-spacing:-.02em;color:var(--ink);
   text-decoration:none;transition:color var(--t-mid) var(--ease),padding-left var(--t-mid) var(--ease)}
 .plain > :last-child{border-bottom:1px solid var(--hair)}
+@media (hover:hover){
 .plain a:hover{color:var(--acc);padding-left:12px;
   transition:color var(--t-fast) var(--out),padding-left var(--t-base) var(--out)}
+}
 .plain em{display:block;font-style:normal;font-family:'Azeret',ui-monospace,monospace;
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ghost);
   margin-bottom:6px}
@@ -541,6 +571,8 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
         min-height:calc(100svh - var(--bar) - 28svh);
         padding:clamp(26px,4vh,44px) 0}
   .card:first-child{margin-top:calc(var(--bar) + 28svh)}
+  /* the one-screen page has to leave room for the band too */
+  .one .card{min-height:calc(100svh - var(--bar) - 28svh)}
   .said{padding:0 clamp(20px,5vw,32px);max-width:none}
   .viz{grid-column:1;max-width:none;padding:0 clamp(20px,5vw,32px);margin-top:26px}
   /* The band is fixed, so it takes no space in the flow and only headroom()
@@ -576,12 +608,30 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   .top nav a{font-size:12px;padding:8px 0;min-height:34px}
   .top nav a::after{bottom:6px}
   .ask{max-width:none}
-  .ask .cycle{font-size:15px}
+  /* a prompt runs to two lines here rather than being cut off mid-word */
+  .ask{align-items:flex-start}
+  .ask .cycle{font-size:15px;height:auto;min-height:3.1em}
+  .ask .typed{white-space:normal}
   .wall{gap:2px clamp(14px,4vw,22px)}
 }
 
+/* ── touch: one swipe, one card, by native snap ──────────────────────────
+   The wheel is paged in script; a finger is paged by the browser, which
+   carries the momentum and lands exactly on scroll-padding-top. Off when a
+   card is taller than the room it has (html.loose, set in mark.js). */
+@media (pointer:coarse){
+  html:not(.loose){scroll-snap-type:y mandatory}
+  .card{scroll-snap-align:start;scroll-snap-stop:always}
+  /* Scrolling freely, two cards share the screen; the one you just read
+     should not fade back out under your thumb. */
+  html.loose .card.seen .said > *,html.loose .card.seen .viz{opacity:1;translate:0 0}
+}
+
 @media (prefers-reduced-motion:reduce){
-  *{transition-duration:1ms!important;animation-duration:1ms!important}
+  /* one iteration, or the endless loops run every millisecond and flicker */
+  *{transition-duration:1ms!important;transition-delay:0ms!important;
+    animation-duration:1ms!important;animation-iteration-count:1!important}
+  .gen i{opacity:.6}
   [data-assemble] .w,.said > *{opacity:1;translate:0 0}
   .wave i{scale:1 .55}
   .frame span{width:100%;opacity:1}
