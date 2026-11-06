@@ -278,6 +278,9 @@ a{color:var(--ink)}
   opacity:0;translate:0 20px;
   transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
 .card.live .viz{opacity:1;translate:0 0;transition-delay:120ms}
+/* A conversation typing itself grows, and if the browser anchored the scroll to
+   it the page was dragged up the screen along with every new line. */
+.viz{overflow-anchor:none}
 
 /* the conversation, typed out rather than photographed */
 .chat{display:flex;flex-direction:column;gap:13px}
@@ -555,8 +558,12 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
 .one .card{min-height:calc(100svh - var(--bar))}
 .one .deck{width:var(--deck)}
 
-/* ── narrow: the mark pins above the reading, opaque, never under the words ── */
-@media (max-width:900px){
+/* ── narrow: the mark pins above the reading, opaque, never under the words ──
+   Not on a phone held sideways. A band there came out 109px tall with the label
+   printed over the mark and 200px left to read in, so a short landscape screen
+   keeps the two columns a wider one gets. mark.js holds the same query (bandMQ);
+   they have to change together. */
+@media (max-width:900px) and (orientation:portrait),(max-width:900px) and (min-height:501px){
   .fallback{width:88%;height:88%}
   /* the mark is a band under the bar here, so the landing cannot hand it the
      middle of the page: it would land on top of the words */
@@ -567,9 +574,12 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
          z-index:3;background:var(--cream);border-bottom:1px solid var(--hair)}
   .label{bottom:7px}
   html{scroll-padding-top:calc(var(--bar) + 28svh)}
-  .card{grid-template-columns:1fr;align-items:start;
+  /* align-content, or the spare height is shared between the rows and a card's
+     visual drifts away from the words it belongs to */
+  .card{grid-template-columns:1fr;align-items:start;align-content:start;
         min-height:calc(100svh - var(--bar) - 28svh);
         padding:clamp(26px,4vh,44px) 0}
+  .card.landing{align-content:stretch}
   .card:first-child{margin-top:calc(var(--bar) + 28svh)}
   /* the one-screen page has to leave room for the band too */
   .one .card{min-height:calc(100svh - var(--bar) - 28svh)}
@@ -579,23 +589,36 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
      ever counted it. Collapsing its height here instead would resize the mark
      canvas to nothing and pop it back on the next card. */
   .stage-off .stage{opacity:0;pointer-events:none}
+  /* A card with its own visual has the whole screen, since the band fades out
+     for it. Snapped to the band's edge it sat under a slab of nothing. */
+  .card[data-stage="off"],.one .card[data-stage="off"]{scroll-margin-top:-28svh;
+        min-height:calc(100svh - var(--bar))}
+  .card[data-stage="off"]:first-child{margin-top:var(--bar)}
   h1{font-size:clamp(34px,9vw,52px);max-width:none}
   h2{font-size:clamp(30px,8vw,46px);max-width:none}
   h1.hero{font-size:clamp(36px,9.6vw,56px);max-width:none}
-  .sub{font-size:16px;margin-top:20px}
-  .btn{margin-top:26px;padding:15px 22px}
-  .top{padding:0 clamp(16px,4vw,26px)}
-  .top nav{gap:clamp(12px,3.4vw,20px)}
-  .top nav a{font-size:13px}
   /* the split becomes two pages stacked, still parted by one hairline */
   .split{grid-template-columns:1fr;margin-top:28px}
   .split .rule{height:1px;margin:28px 0}
   .half,.half:first-child,.half:last-child{padding:0}
   a.half:hover,a.half:first-child:hover{padding-left:0}
-  .creed:hover .cv b{color:var(--ink)}
   .cap{grid-template-columns:1fr;gap:16px;align-items:start}
   .cap .mono{padding-top:0}
+}
+@media (max-width:900px){
+  .sub{font-size:16px;margin-top:20px}
+  .btn{margin-top:26px;padding:15px 22px}
+  .top{padding:0 clamp(16px,4vw,26px)}
+  .top nav{gap:clamp(12px,3.4vw,20px)}
+  .top nav a{font-size:13px}
+  .creed:hover .cv b{color:var(--ink)}
   .bk{padding-left:clamp(52px,14vw,78px)}
+}
+/* sideways: the height is the scarce thing, so the bar gives some back */
+@media (max-height:500px) and (orientation:landscape){
+  :root{--bar:56px}
+  .card{padding:14px 0}
+  .btn{margin-top:18px}
 }
 @media (max-width:560px){
   /* Five pages will not sit beside the wordmark on a phone, so the bar becomes
@@ -617,11 +640,15 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
 
 /* ── touch: one swipe, one card, by native snap ──────────────────────────
    The wheel is paged in script; a finger is paged by the browser, which
-   carries the momentum and lands exactly on scroll-padding-top. Off when a
-   card is taller than the room it has (html.loose, set in mark.js). */
+   carries the momentum and lands exactly on scroll-padding-top. When a card is
+   taller than the room it has (html.loose, set in mark.js) mandatory would trap
+   the reader in it, so the page only settles onto a card it is already close to
+   instead of giving up on paging altogether. */
 @media (pointer:coarse){
   html:not(.loose){scroll-snap-type:y mandatory}
+  html.loose{scroll-snap-type:y proximity}
   .card{scroll-snap-align:start;scroll-snap-stop:always}
+  html.loose .card{scroll-snap-stop:normal}
   /* Scrolling freely, two cards share the screen; the one you just read
      should not fade back out under your thumb. */
   html.loose .card.seen .said > *,html.loose .card.seen .viz{opacity:1;translate:0 0}
