@@ -213,7 +213,7 @@ var FORMS = {
      The X and the Mashmoom mark are the only two marks that go solid. */
 
   /* the country, from the real coastline rather than a drawn blob */
-  bahrain: { w: 3000, h: 3000, dust: true, paint: function (g) {
+  bahrain: { w: 3000, h: 3000, dust: true, few: 0.55, paint: function (g) {
         var R = window.BAHRAIN;
         if (!R || !R.length) return;
         var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, i, j, r;
@@ -243,7 +243,9 @@ var FORMS = {
   /* a wide short form gets more of the column than a square one, or the word
      ends up a third the height of the marks around it */
   arabic: { w: 3000, h: 1100, dust: true, boost: 1.3, paint: function (g) {
-        g.fillStyle = '#6B3FA0';
+        /* the lighter of his purples: the deep one barely clears the page colour
+           at this size, and the word was hard to see at all on a phone */
+        g.fillStyle = '#9F7ACB';
         g.font = '600 720px PlexAr, serif';
         g.textAlign = 'center'; g.textBaseline = 'middle';
         if (g.direction !== undefined) g.direction = 'rtl';
@@ -304,7 +306,7 @@ var FORMS = {
         var c, i;
         for (c = 0; c < 3; c++) {
           for (i = 0; i < 9; i++) {
-            g.fillStyle = (i === 5) ? '#B99FD9' : '#6B3FA0';
+            g.fillStyle = (i === 5) ? '#B99FD9' : '#8456BC';
             g.fillRect(300 + c * 920, 420 + i * 250, (i === 5 ? 760 : 620), 120);
           }
         }
@@ -325,7 +327,7 @@ var FORMS = {
 
   /* sometimes you just need to talk */
   w_talk: { w: 3000, h: 3000, dust: true, paint: function (g) {
-        g.fillStyle = '#6B3FA0';
+        g.fillStyle = '#8456BC';
         g.beginPath();                                      /* you */
         g.moveTo(240, 320); g.lineTo(2140, 320); g.lineTo(2140, 1120);
         g.lineTo(900, 1120); g.lineTo(600, 1420); g.lineTo(600, 1120);
@@ -526,9 +528,20 @@ function remember() {
   try { sessionStorage.setItem(KEY, JSON.stringify({ f: f, at: location.pathname })); } catch (e) {}
 }
 addEventListener('pagehide', remember);
+function pageOf(p) { return p.replace(/index\.html$/, ''); }
 document.addEventListener('click', function (e) {
   var a = e.target.closest && e.target.closest('a[href]');
-  if (a && a.origin === location.origin && !a.hash) remember();
+  if (!a || a.origin !== location.origin || a.hash) return;
+  /* A link to the page you are already on goes back to its top, rather than
+     reloading the whole thing to get there. */
+  if (pageOf(a.pathname) === pageOf(location.pathname) && cards.length &&
+      !e.ctrlKey && !e.metaKey && !e.shiftKey && !inSplash()) {
+    e.preventDefault();
+    lockNotch();
+    goTo(0);
+    return;
+  }
+  remember();
 }, true);
 
 function build() {
@@ -590,7 +603,11 @@ function sampleSet(key) {
   /* A shape held as diamonds wants far fewer cells than a shape being
      morphed. At the morph count the grid was finer than the diamonds and
      they fused into a solid fuzzy band instead of reading as a lattice. */
-  var f = FORMS[key], fit = fitForm(f, f.dust ? Math.round(N * 0.3) : N);
+  var f = FORMS[key], cells = Math.round(N * 0.3);
+  /* a tall narrow shape in a short phone band gets very few pixels, so it is built
+     from fewer, larger diamonds or it reads as a smudge */
+  if (f.few && N <= 760) cells = Math.round(cells * f.few);
+  var fit = fitForm(f, f.dust ? cells : N);
   /* A formation that samples to nothing puts every diamond on the origin and
      the mark collapses to a single dot in the middle of the stage. That is
      what Bahrain did on the three pages that peek it in the navigation
@@ -656,9 +673,7 @@ function scale(key) {
   if (f.fixed) return f.fixed;                  /* a captured mid-morph state */
   var dw = f.w >= f.h ? 1 : f.w / f.h;          /* drawn width  = s * dw */
   var dh = f.h >= f.w ? 1 : f.h / f.w;          /* drawn height = s * dh */
-  /* in the phone band the running label sits just under the mark, so it needs
-     a little more room than it does in a full column */
-  var fit = Math.min(W * 0.96 / dw, H * (H < 360 ? 0.80 : 0.92) / dh);
+  var fit = Math.min(W * 0.96 / dw, H * 0.92 / dh);
   /* The ceiling keeps the mark from swelling to fill a very large display, but
      the landing is the one screen where the mark IS the screen. Held to the
      inner ceiling it came out 700px wide on a 1920 display, with a slab of
@@ -1097,6 +1112,7 @@ function mixRGB(r1, g1, b1, r2, g2, b2, t) {
 }
 /* the same query as the band layout in site.css */
 var bandMQ = matchMedia('(max-width:900px) and (orientation:portrait),(max-width:900px) and (min-height:501px)');
+var BAND = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--band')) / 100 || 0.18;
 /* the small viewport height (URL bar showing), which is what the CSS band is
    sized in; innerHeight grows when the bar hides and the mark landed too big */
 var probe = null;
@@ -1118,12 +1134,12 @@ function landingBox() {
   var lw = narrow ? innerWidth : r.width;
   /* less the band's 1px border, which the canvas sits inside: without it the
      lockup dropped half a pixel the moment the splash handed it over */
-  var lh = narrow ? svh() * 0.28 - 1 : innerHeight * 0.56 - bh;
+  var lh = narrow ? svh() * BAND - 1 : innerHeight * 0.56 - bh;
   if (!(lw > 0) || !(lh > 0)) return null;
   var f = FORMS.word, dw = 1, dh = f.h / f.w;
   /* the same fit scale() will use at rest, or a short landscape band resized the
      lockup the moment the splash let go of it */
-  var fit = Math.min(lw * 0.96 / dw, lh * (lh < 360 ? 0.80 : 0.92) / dh);
+  var fit = Math.min(lw * 0.96 / dw, lh * 0.92 / dh);
   var top = 420 + Math.min(lw / dw, lh / dh) * 0.52;
   return { cx: narrow ? lw / 2 : r.left + lw / 2, cy: bh + lh / 2,
            s: Math.min(fit, top) };
@@ -1219,13 +1235,6 @@ function draw(ts) {
         morphTo(liveCard.dataset.form);
       }
     }
-  }
-
-  /* A card that brings its own visual has faded the stage out. Once it is gone
-     and the mark has landed there is nothing to paint for. */
-  if (stageOff && !splash && mix >= 1 && ts - stageOffAt > 400) {
-    raf = requestAnimationFrame(draw);
-    return;
   }
 
   ctx.clearRect(0, 0, W, H);
@@ -1601,13 +1610,21 @@ function settleTo(el, text) {
    A screenshot of a chat is a dead thing. The exchange is real elements, and
    when its card arrives the question is typed a character at a time and the
    answer lands after it, which is what the product actually feels like. */
-var typeIv = 0, typeTo = 0;
+var typeIv = 0, typeTo = 0, typeBoxes = [];
 function typeOut(card) {
   clearInterval(typeIv); clearTimeout(typeTo);
+  /* Once. Coming back to a finished exchange and having it wiped and retyped made
+     you sit through six seconds of something you had already read. */
+  if (card && card.dataset.typed) return;
   var think = card ? card.querySelector('.thinking') : null;
   if (think) think.classList.remove('on');
   var nodes = card ? [].slice.call(card.querySelectorAll('[data-type]')) : [];
   if (!nodes.length) return;
+  /* Held at its finished height while it types. The card is centred, so a
+     conversation that grew pushed everything up the screen with every line. */
+  var box = nodes[0].parentNode;
+  if (!box.style.minHeight) { box.style.minHeight = box.offsetHeight + 'px'; typeBoxes.push(box); }
+  card.dataset.typed = reduced ? '1' : '';
   nodes.forEach(function (n) {
     if (!n.dataset.full) n.dataset.full = n.textContent.trim();
     n.textContent = reduced ? n.dataset.full : '';
@@ -1625,6 +1642,7 @@ function typeOut(card) {
   var i = 0;
   (function run() {
     if (i >= nodes.length) {
+      card.dataset.typed = '1';
       /* the exchange ends on the mark turning, not on a full stop */
       if (think) typeTo = setTimeout(function () { think.classList.add('on'); }, 360);
       return;
@@ -1670,6 +1688,8 @@ function typeOut(card) {
   function pick(n, byHand) {
     i = n;
     words.forEach(function (w, k) { w.classList.toggle('on', k === i); });
+    /* so arriving at this card shows the word that is lit, not some other one */
+    if (card && words[i].dataset.peek) card.dataset.form = words[i].dataset.peek;
     /* a hand on a word is the peek's job; these carry data-peek */
     if (!byHand && hover === null && onCard() && words[i].dataset.peek) {
       morphTo(words[i].dataset.peek);
@@ -1805,7 +1825,15 @@ function typeOut(card) {
 /* ── the cards drive the mark ───────────────────────────────────────────── */
 var cards = [].slice.call(document.querySelectorAll('.card[data-form]'));
 var label = document.querySelector('[data-settle]');
-var liveCard = null, stageOff = false, stageOffAt = 0, fieldTick = 0;
+var liveCard = null, fieldTick = 0;
+/* one diamond per section, so it is plain how much there is and where you are */
+var rail = null;
+if (cards.length > 1) {
+  rail = document.createElement('div');
+  rail.className = 'rail'; rail.setAttribute('aria-hidden', 'true');
+  cards.forEach(function () { rail.appendChild(document.createElement('i')); });
+  document.body.appendChild(rail);
+}
 function applyCard(el, quiet) {
   if (!el || el === liveCard) return;
   /* the landing holds the mark in the middle of the page; every card after it
@@ -1815,11 +1843,6 @@ function applyCard(el, quiet) {
   atLanding = el.classList.contains('landing');
   if (firstCard) landK = atLanding ? 1 : 0;   /* a page opens at its size, it does not ease into it */
   document.documentElement.classList.toggle('at-landing', atLanding);
-  /* a card that brings its own visual takes the right column from the mark */
-  var off = el.dataset.stage === 'off';
-  if (off && !stageOff) stageOffAt = performance.now();
-  stageOff = off;
-  document.documentElement.classList.toggle('stage-off', off);
   typeOut(el);
   /* Scrolling while a navigation item is being hovered: the peek keeps the
      frame, and what it hands back is the mark the new card asked for. */
@@ -1827,7 +1850,10 @@ function applyCard(el, quiet) {
   else morphTo(el.dataset.form, quiet || intro);
   if (label && el.dataset.label) settleTo(label, el.dataset.label);
   el.classList.add('seen');
-  cards.forEach(function (c) { c.classList.toggle('live', c === el); });
+  cards.forEach(function (c, k) {
+    c.classList.toggle('live', c === el);
+    if (rail) rail.children[k].classList.toggle('on', c === el);
+  });
 }
 
 /* ── one notch, one card ────────────────────────────────────────────────
@@ -1844,7 +1870,7 @@ var relayout = function () { snapGuard(); };
 /* How much is covering the top of the page. On a wide screen that is just the
    bar; on a phone the mark sits in a band under it, and scrolling a card to the
    bar alone hid its first third behind that band. */
-function headroom(card) {
+function headroom() {
   var bar = document.querySelector('.top');
   var h = bar ? bar.getBoundingClientRect().height : 0;
   /* The band only exists in the phone layout, so that is the only place to go
@@ -1853,13 +1879,9 @@ function headroom(card) {
      as the full viewport, every card measured as taller than the room it had,
      the page fell into free scrolling and the observer's root collapsed to a
      strip nothing could ever intersect. The home page stopped advancing its
-     cards entirely.
-
-     Asked about a particular card, the answer is that card's: one with its own
-     visual fades the band out and has the room to itself. */
+     cards entirely. */
   var st = document.querySelector('.stage');
-  if (st && bandMQ.matches && !(card && card.dataset.stage === 'off') &&
-      !document.documentElement.classList.contains('splash')) {
+  if (st && bandMQ.matches && !document.documentElement.classList.contains('splash')) {
     h += st.getBoundingClientRect().height;
   }
   return h;
@@ -1869,10 +1891,9 @@ function snapGuard() {
   /* Measured against the small viewport on a phone, like the cards themselves.
      innerHeight grows when the URL bar hides, so a card that only just fitted
      flipped the whole page between snapping and free scrolling mid-swipe. */
-  var screen = bandMQ.matches ? svh() : innerHeight;
+  var room = (bandMQ.matches ? svh() : innerHeight) - headroom();
   var tall = false;
   cards.forEach(function (c) {
-    var room = screen - headroom(c);
     /* every child, not just the words: on a phone the card's visual stacks
        under them, and counting only the first left a tall card snapping */
     var top = Infinity, bot = -Infinity;
@@ -1882,7 +1903,9 @@ function snapGuard() {
       top = Math.min(top, r.top); bot = Math.max(bot, r.bottom);
     }
     var hgt = bot > top ? bot - top : c.scrollHeight;
-    if (hgt > room - 28) tall = true;
+    /* what the card's own padding leaves, and no stricter: a card that fits must
+       not cost the whole page its paging */
+    if (hgt > room - 12) tall = true;
   });
   loose = tall;
   document.documentElement.classList.toggle('loose', tall);
@@ -1893,7 +1916,7 @@ function cardIndex() {
 }
 function goTo(i) {
   i = Math.max(0, Math.min(cards.length - 1, i));
-  var y = cards[i].getBoundingClientRect().top + (scrollY || pageYOffset) - headroom(cards[i]);
+  var y = cards[i].getBoundingClientRect().top + (scrollY || pageYOffset) - headroom();
   scrollTo({ top: Math.max(0, Math.round(y)), behavior: reduced ? 'auto' : 'smooth' });
   applyCard(cards[i]);
 }
@@ -1902,12 +1925,23 @@ function notch(dir) {
   if (notchLock) return;
   var i = cardIndex() + dir;
   if (i < 0 || i > cards.length - 1) return;   /* no lock for a notch that goes nowhere */
-  notchLock = true;
-  /* long enough to cover the smooth scroll itself, so the observer never gets
-     to argue with it halfway */
-  setTimeout(function () { notchLock = false; }, reduced ? 60 : 820);
+  lockNotch();
   goTo(i);
 }
+/* Long enough to cover the smooth scroll, so the observer never gets to argue
+   with it halfway, and held while a trackpad's momentum is still arriving, so one
+   flick is one card. A person's next deliberate notch is not made to wait. */
+var lastWheel = 0;
+function lockNotch() {
+  notchLock = true;
+  var at = performance.now(), least = reduced ? 60 : 560;
+  (function free() {
+    var now = performance.now();
+    if (now - at < least || (now - lastWheel < 120 && now - at < 1300)) { setTimeout(free, 40); return; }
+    notchLock = false;
+  })();
+}
+function inSplash() { return document.documentElement.classList.contains('splash'); }
 function ownScroll(node) {
   for (var n = node; n && n !== document.body; n = n.parentElement) {
     if (n.scrollHeight > n.clientHeight + 2) {
@@ -1918,6 +1952,10 @@ function ownScroll(node) {
   return false;
 }
 addEventListener('wheel', function (e) {
+  if (e.ctrlKey) return;                 /* zoom and pinch, not a scroll */
+  /* a notch during the splash would land you on a card you never saw arrive */
+  if (inSplash()) { e.preventDefault(); return; }
+  lastWheel = performance.now();
   if (loose || !cards.length) return;
   if (Math.abs(e.deltaY) < 4) return;
   if (ownScroll(e.target)) return;
@@ -1925,10 +1963,13 @@ addEventListener('wheel', function (e) {
   notch(e.deltaY > 0 ? 1 : -1);
 }, { passive: false });
 addEventListener('keydown', function (e) {
-  if (loose || !cards.length) return;
+  if (loose || !cards.length || inSplash()) return;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   var key = e.key;
-  if (key === 'ArrowDown' || key === 'PageDown' || key === ' ') { e.preventDefault(); notch(1); }
+  /* Space on a button or link belongs to that button or link */
+  if (key === ' ' && e.target.closest && e.target.closest('a,button')) return;
+  if (key === ' ') { e.preventDefault(); notch(e.shiftKey ? -1 : 1); }
+  else if (key === 'ArrowDown' || key === 'PageDown') { e.preventDefault(); notch(1); }
   else if (key === 'ArrowUp' || key === 'PageUp') { e.preventDefault(); notch(-1); }
   else if (key === 'Home') { e.preventDefault(); goTo(0); }
   else if (key === 'End') { e.preventDefault(); goTo(cards.length - 1); }
@@ -1979,9 +2020,9 @@ if ('IntersectionObserver' in window) {
         var v = en.intersectionRect.height /
                 Math.max(1, Math.min(en.boundingClientRect.height, room));
         ratio.set(en.target, v);
-        /* scrolling freely, the next card is on screen long before it is live
-           and should not sit there blank until it is */
-        if (loose && v > 0.08) en.target.classList.add('seen');
+        /* the next card is on screen before it is live, and should not sit there
+           blank until it is */
+        if (v > 0.08) en.target.classList.add('seen');
       });
       /* A smooth scroll passes through every card between here and there, and
          the observer fired for each one: the mark morphed two or three times
@@ -2000,6 +2041,7 @@ if ('IntersectionObserver' in window) {
   relayout = function () { snapGuard(); watchCards(); };
 } else {
   [].forEach.call(document.querySelectorAll('[data-assemble]'), function (h) { h.classList.add('set'); });
+  cards.forEach(function (c) { c.classList.add('seen'); });
 }
 
 /* ── hovering a page in the navigation shows that page's mark ────────────
@@ -2060,6 +2102,11 @@ addEventListener('resize', function () {
     var still = Math.abs(innerWidth - lastW) < 2 &&
       Math.abs(mb.width - BW) < 1 && Math.abs(mb.height - BH) < 1 &&
       (!fb || Math.abs(Math.round(fb.height) - FH) < 2);
+    /* new width, new line breaks: the height held for the typing no longer fits */
+    if (Math.abs(innerWidth - lastW) >= 2) {
+      typeBoxes.forEach(function (b) { b.style.minHeight = ''; });
+      typeBoxes = [];
+    }
     lastW = innerWidth;
     if (!still) build();
     /* The headroom changes with the layout, and it is baked into the observer.
@@ -2076,8 +2123,9 @@ document.addEventListener('visibilitychange', function () {
 
 build();
 if (cards.length) applyCard(cards[0], true);
-/* Arriving from anywhere else in this session is a return, not an arrival. */
-if (carried && cameFrom !== location.pathname) { splash = false; }
+/* Anything after the first look this session is a return, not an arrival: another
+   page, a reload, the logo. The splash is a welcome and only works once. */
+if (carried) { splash = false; }
 if (carried && cameFrom !== location.pathname && carried !== to) {
   /* came from another page: start on the mark that page was showing and morph
      across, so the logo is the one thing that does not reload. No splash

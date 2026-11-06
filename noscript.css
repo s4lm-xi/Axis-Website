@@ -4,10 +4,21 @@
    inline <style> block. */
 .fallback{display:block}
 #mark,.label{display:none}
-[data-assemble] .w,.said > *{opacity:1;translate:0 0}
+[data-assemble] .w,.said > *,.viz{opacity:1;translate:0 0}
 .cv span{opacity:1;translate:0 0}
 /* the wall's one shared detail line follows the cursor, so it goes away */
 .say{display:none}
-/* no script, no splash: the page must not stay behind a curtain */
+/* no script, no splash: the page must not stay behind a curtain. The stage goes
+   back to its own box and the green goes, or the green mark sits on green. */
+html.splash{background:var(--cream)}
+.splash body{background:var(--cream)}
 .splash .top,.splash .deck{opacity:1;pointer-events:auto}
-.splash .stage{left:0;right:0;width:100vw;top:0;bottom:0}
+.splash .stage{left:calc(var(--deckL) + var(--deck) * .54);width:calc(var(--deck) * .46);
+  top:var(--bar);bottom:0;height:auto;z-index:1}
+@media (max-width:900px) and (orientation:portrait),(max-width:900px) and (min-height:501px){
+  .splash .stage{left:0;width:100%;bottom:auto;height:calc(var(--band) * 1svh);
+    z-index:3;background:var(--cream)}
+}
+/* the prompts are written out one after another by the script */
+.ask .cycle{height:auto}
+.ask .cycle span{display:block;margin-top:6px}

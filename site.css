@@ -39,6 +39,9 @@
   --acc:var(--m-600); --acc-lo:var(--m-400); --acc-dim:rgba(107,63,160,.32);
 
   --bar:74px;
+  /* the phone's logo band, as a percentage of the small viewport; mark.js reads
+     this rather than keeping a second copy of the number */
+  --band:18;
   --pad:clamp(20px,4vw,56px);
   --shell:1440px;
   --deck:min(calc(100vw - var(--pad) * 2), calc(var(--shell) - var(--pad) * 2));
@@ -89,7 +92,7 @@ body{
   padding:14px 20px;text-decoration:none}
 .skip:focus{left:0}
 
-.mono{font-family:'Azeret',ui-monospace,monospace;font-size:10px;
+.mono{font-family:'Azeret',ui-monospace,monospace;font-size:11px;
   letter-spacing:.18em;text-transform:uppercase}
 
 /* ── the bar ────────────────────────────────────────────────────────────── */
@@ -115,7 +118,7 @@ body{
   transition:color var(--t-fast) var(--out),letter-spacing var(--t-base) var(--back),translate var(--t-base) var(--back)}
 }
 .top nav a[aria-current="page"]{color:var(--ink);font-weight:600}
-.navmark{position:absolute;left:0;bottom:9px;width:9px;height:9px;margin-left:-4.5px;
+.navmark{position:absolute;left:0;bottom:2px;width:9px;height:9px;margin-left:-4.5px;
   background:var(--acc);pointer-events:none;opacity:0;
   clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
   transition:opacity var(--t-mid) var(--ease)}
@@ -174,7 +177,7 @@ html{transition:background-color 430ms var(--ease)}
 .card{
   position:relative;
   min-height:calc(100svh - var(--bar));
-  display:grid;grid-template-columns:54fr 46fr;align-items:center;
+  display:grid;grid-template-columns:54fr 46fr;align-items:center;align-content:center;
   padding:clamp(20px,3vh,38px) 0;
 }
 .card:first-child{margin-top:var(--bar)}
@@ -184,16 +187,17 @@ html{transition:background-color 430ms var(--ease)}
 .said{grid-column:1;min-width:0;
   padding:0 clamp(22px,2.6vw,46px) 0 clamp(26px,3vw,54px);max-width:56ch}
 
-/* The card's words arrive when the card does, which is the whole reason the
-   frame is here: the motion starts at a boundary instead of drifting. */
+/* The card's words arrive as it comes on screen, and they stay. Tied to the card
+   being live, the next section sat blank under your thumb until it had taken
+   over the screen. */
 .said > *{opacity:0;translate:0 16px;
   transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
-.card.live .said > *{opacity:1;translate:0 0}
-.card.live .said > :nth-child(1){transition-delay:40ms}
-.card.live .said > :nth-child(2){transition-delay:80ms}
-.card.live .said > :nth-child(3){transition-delay:120ms}
-.card.live .said > :nth-child(4){transition-delay:160ms}
-.card.live .said > :nth-child(5){transition-delay:200ms}
+.card.seen .said > *{opacity:1;translate:0 0}
+.card.seen .said > :nth-child(1){transition-delay:40ms}
+.card.seen .said > :nth-child(2){transition-delay:80ms}
+.card.seen .said > :nth-child(3){transition-delay:120ms}
+.card.seen .said > :nth-child(4){transition-delay:160ms}
+.card.seen .said > :nth-child(5){transition-delay:200ms}
 
 h1,h2{margin:0;font-weight:420;letter-spacing:-.043em;line-height:1.0;text-wrap:balance}
 h1{font-size:clamp(40px,5.6vw,80px);max-width:13ch}
@@ -245,39 +249,29 @@ a{color:var(--ink)}
 }
 @media (hover:none){
   .btn:active{background:var(--ink);color:var(--cream);transition:none}
-  .btn.soonly:active .on{display:none}
-  .btn.soonly:active .off{display:inline}
+  .btn.soon:active{background:none;color:var(--dim)}
 }
-/* the button that is not ready yet says so when you reach for it */
-.btn.soonly .on{display:inline}
-.btn.soonly .off{display:none}
-.btn.soonly:focus-visible .on{display:none}
-.btn.soonly:focus-visible .off{display:inline}
+/* Not ready yet, and says so up front. It used to read "Try it now", promise a
+   click, and throw you back to the top of the page. */
+.btn.soon{border-color:var(--hair);color:var(--dim);cursor:default}
+.btn.soon::after{display:none}
 @media (hover:hover){
-  .btn.soonly:hover .on{display:none}
-  .btn.soonly:hover .off{display:inline}
+  .btn.soon:hover{background:none;color:var(--dim);gap:13px}
 }
 
 /* the cut corner: the only move the X makes, and the only decoration allowed */
 .cut{clip-path:polygon(0 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%)}
 
-/* A row of anything needs the whole page. Squeezed into the half column that
-   the mark leaves, it wraps after two words. */
-.card.wide{grid-template-columns:1fr}
-.card.wide .said{max-width:none;padding-right:clamp(26px,3vw,54px)}
-.card.wide h2{max-width:22ch}
-.card.wide .sub{max-width:62ch}
-
-/* ── the right column, when a card brings its own visual ────────────────
-   The mark steps aside for these. One fixed canvas cannot hold a chart and a
-   conversation as well as the logo, and a page that shows the same object in
-   the same place on every screen is the slideshow problem all over again. */
-.stage-off .stage{opacity:0}
-.viz{grid-column:2;align-self:center;justify-self:center;width:100%;
-  max-width:560px;padding:0 clamp(16px,2vw,40px);
+/* ── when a card brings its own visual ──────────────────────────────────
+   It sits under the words. The mark never steps aside: every section on every
+   page has its formation, and a card that hid it read as the animation being
+   broken on that one section. */
+.viz{grid-column:1;justify-self:start;width:100%;
+  max-width:calc(56ch + clamp(26px,3vw,54px));margin-top:clamp(18px,3vh,30px);
+  padding:0 clamp(22px,2.6vw,46px) 0 clamp(26px,3vw,54px);
   opacity:0;translate:0 20px;
   transition:opacity var(--t-slow) var(--ease),translate var(--t-slow) var(--ease)}
-.card.live .viz{opacity:1;translate:0 0;transition-delay:120ms}
+.card.seen .viz{opacity:1;translate:0 0;transition-delay:120ms}
 /* A conversation typing itself grows, and if the browser anchored the scroll to
    it the page was dragged up the screen along with every new line. */
 .viz{overflow-anchor:none}
@@ -313,7 +307,7 @@ a{color:var(--ink)}
    The first screen is the lockup and nothing else. No headline competing with
    it, no button, no product. You arrive, AXIS builds itself out of his own
    wordmark, and the only thing asked of you is to keep going. */
-.card.landing{grid-template-columns:1fr;align-items:end;justify-items:center;
+.card.landing{grid-template-columns:1fr;align-items:end;align-content:stretch;justify-items:center;
   text-align:center;padding-bottom:clamp(34px,8vh,96px)}
 .card.landing .said{padding:0 var(--pad);max-width:none}
 .landing .wordline{font-size:clamp(30px,3.8vw,52px);font-weight:450;
@@ -334,8 +328,7 @@ a{color:var(--ink)}
    a logo has no business being. */
 .ask{display:flex;align-items:center;margin:30px 0 0;
   padding:19px 22px;border:1px solid var(--hair);background:var(--cream);
-  max-width:52ch;transition:border-color var(--t-mid) var(--ease)}
-@media (hover:hover){.ask:hover{border-color:var(--acc-dim);transition:border-color var(--t-fast) var(--out)}}
+  max-width:52ch;cursor:default}
 .ask .cycle{flex:1;min-width:0;height:1.45em;font-size:clamp(16px,1.35vw,19px);
   font-weight:450;letter-spacing:0}
 /* The caret sits at the end of what has been typed so far and travels with it.
@@ -426,11 +419,12 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
    The number is the only ornament and it is ghosted until you are on its
    answer.
    ═══════════════════════════════════════════════════════════════════════ */
-.backing{margin:32px 0 0;counter-reset:b}
-.bk{counter-increment:b;position:relative;border-top:1px solid var(--hair);
+.backing{margin:32px 0 0}
+.backing:first-child{margin-top:0}
+.bk{position:relative;border-top:1px solid var(--hair);
   padding:clamp(16px,2.3vh,26px) 0 clamp(16px,2.3vh,26px) clamp(62px,7vw,138px)}
 .bk:last-child{border-bottom:1px solid var(--hair)}
-.bk::before{content:counter(b,decimal-leading-zero);position:absolute;left:0;
+.bk::before{content:attr(data-n);position:absolute;left:0;
   top:clamp(14px,2vh,24px);line-height:.8;
   font-family:'Azeret',ui-monospace,monospace;font-size:clamp(32px,4.2vw,66px);
   letter-spacing:-.05em;color:rgba(255,251,247,.11);
@@ -497,10 +491,10 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
    ═══════════════════════════════════════════════════════════════════════ */
 .coming{margin:32px 0 0;border-top:1px solid var(--hair)}
 .cap{display:grid;
-  grid-template-columns:minmax(0,8ch) minmax(0,1fr) minmax(0,clamp(150px,20vw,320px));
-  gap:clamp(18px,3vw,54px);align-items:center;
-  padding:clamp(24px,3.8vh,44px) 0;border-bottom:1px solid var(--hair)}
-.cap .mono{color:var(--acc-lo);align-self:start;padding-top:.65em}
+  grid-template-columns:minmax(0,1fr) minmax(0,clamp(96px,13vw,190px));
+  gap:10px clamp(18px,2vw,34px);align-items:center;
+  padding:clamp(20px,3vh,36px) 0;border-bottom:1px solid var(--hair)}
+.cap .mono{color:var(--acc-lo);grid-column:1 / -1}
 .cap p{margin:0;font-size:clamp(20px,2.2vw,32px);line-height:1.2;
   letter-spacing:-.03em;color:var(--ink);max-width:28ch}
 
@@ -553,7 +547,7 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   transition:color var(--t-fast) var(--out),padding-left var(--t-base) var(--out)}
 }
 .plain em{display:block;font-style:normal;font-family:'Azeret',ui-monospace,monospace;
-  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ghost);
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ghost);
   margin-bottom:6px}
 .one .card{min-height:calc(100svh - var(--bar))}
 .one .deck{width:var(--deck)}
@@ -569,31 +563,21 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
      middle of the page: it would land on top of the words */
   .at-landing .stage{left:0;width:100%;bottom:auto}
   .card.landing{align-items:center;padding-bottom:clamp(26px,6vh,60px)}
-  .at-landing .label{opacity:1}
-  .stage{top:var(--bar);left:0;right:0;width:100%;height:28svh;bottom:auto;
+  /* The screen is what is scarce here, so the band is as short as the marks can
+     stand, the label goes (the formation is the caption) and each card centres
+     in what is left. */
+  .stage{top:var(--bar);left:0;right:0;width:100%;height:calc(var(--band) * 1svh);bottom:auto;
          z-index:3;background:var(--cream);border-bottom:1px solid var(--hair)}
-  .label{bottom:7px}
-  html{scroll-padding-top:calc(var(--bar) + 28svh)}
-  /* align-content, or the spare height is shared between the rows and a card's
-     visual drifts away from the words it belongs to */
-  .card{grid-template-columns:1fr;align-items:start;align-content:start;
-        min-height:calc(100svh - var(--bar) - 28svh);
-        padding:clamp(26px,4vh,44px) 0}
-  .card.landing{align-content:stretch}
-  .card:first-child{margin-top:calc(var(--bar) + 28svh)}
+  .label,.at-landing .label{display:none}
+  html{scroll-padding-top:calc(var(--bar) + var(--band) * 1svh)}
+  .card{grid-template-columns:1fr;align-items:start;
+        min-height:calc(100svh - var(--bar) - var(--band) * 1svh);
+        padding:clamp(14px,2.6vh,30px) 0}
+  .card:first-child{margin-top:calc(var(--bar) + var(--band) * 1svh)}
   /* the one-screen page has to leave room for the band too */
-  .one .card{min-height:calc(100svh - var(--bar) - 28svh)}
+  .one .card{min-height:calc(100svh - var(--bar) - var(--band) * 1svh)}
   .said{padding:0 clamp(20px,5vw,32px);max-width:none}
-  .viz{grid-column:1;max-width:none;padding:0 clamp(20px,5vw,32px);margin-top:26px}
-  /* The band is fixed, so it takes no space in the flow and only headroom()
-     ever counted it. Collapsing its height here instead would resize the mark
-     canvas to nothing and pop it back on the next card. */
-  .stage-off .stage{opacity:0;pointer-events:none}
-  /* A card with its own visual has the whole screen, since the band fades out
-     for it. Snapped to the band's edge it sat under a slab of nothing. */
-  .card[data-stage="off"],.one .card[data-stage="off"]{scroll-margin-top:-28svh;
-        min-height:calc(100svh - var(--bar))}
-  .card[data-stage="off"]:first-child{margin-top:var(--bar)}
+  .viz{max-width:none;padding:0 clamp(20px,5vw,32px)}
   h1{font-size:clamp(34px,9vw,52px);max-width:none}
   h2{font-size:clamp(30px,8vw,46px);max-width:none}
   h1.hero{font-size:clamp(36px,9.6vw,56px);max-width:none}
@@ -603,7 +587,9 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   .half,.half:first-child,.half:last-child{padding:0}
   a.half:hover,a.half:first-child:hover{padding-left:0}
   .cap{grid-template-columns:1fr;gap:16px;align-items:start}
-  .cap .mono{padding-top:0}
+  .chat{gap:9px}
+  .bub{padding:11px 15px;font-size:16px}
+  .bub.ar{font-size:17px}
 }
 @media (max-width:900px){
   .sub{font-size:16px;margin-top:20px}
@@ -617,19 +603,65 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
 /* sideways: the height is the scarce thing, so the bar gives some back */
 @media (max-height:500px) and (orientation:landscape){
   :root{--bar:56px}
-  .card{padding:14px 0}
+  .label{display:none}
+  .card{padding:12px 0}
   .btn{margin-top:18px}
+  h1{font-size:clamp(28px,4.8vw,44px)}
+  h2{font-size:clamp(26px,3.8vw,38px)}
+  h1.hero{font-size:clamp(28px,4.8vw,44px)}
+  .creed{margin-top:14px}
+  .cv{padding-top:9px;padding-bottom:9px}
+  .plain{margin-top:12px}
+  .plain a,.plain span{padding:5px 0;font-size:17px}
+  .plain em{margin-bottom:1px}
+  .viz{margin-top:10px}
+  .chat{gap:6px}
+  .bub{padding:7px 12px;font-size:14.5px}
+  .bub.ar{font-size:15px}
+  .nameplate{padding:14px 18px}
+  .nameplate .mono{margin-top:8px}
+  .coming{margin-top:12px}
+  .cap{padding:10px 0;gap:12px}
+  .cap p{font-size:18px}
+  .wave,.gen{height:44px}
+  .decl h2{font-size:24px}
+  .decl p{font-size:16px;margin-top:6px}
+  .decl + .decl{margin-top:12px;padding-top:12px}
+  .says{margin-top:12px}
+  .says p{padding:8px 0;font-size:16px}
+  .ask{margin-top:14px;padding:12px 16px}
+  .bk{padding-top:10px;padding-bottom:10px}
+  .bk p{margin-top:6px;font-size:14.5px}
+  .backing{margin-top:14px}
+}
+/* a short phone upright: the same idea, one notch less tight */
+@media (max-height:640px) and (orientation:portrait){
+  .card{padding:10px 0}
+  h1,h1.hero{font-size:clamp(30px,8.4vw,38px)}
+  h2{font-size:clamp(28px,7.6vw,34px)}
+  .btn{margin-top:18px}
+  .plain{margin-top:16px}
+  .plain a,.plain span{padding:9px 0;font-size:18px}
+  .plain em{margin-bottom:3px}
+  .decl p{font-size:16px;margin-top:8px}
+  .decl + .decl{margin-top:14px;padding-top:14px}
+  .says{margin-top:14px}
+  .says p{padding:10px 0;font-size:16px}
+  .coming{margin-top:14px}
+  .cap{padding:12px 0;gap:8px}
+  .cap p{font-size:17px}
+  .wave,.gen{height:36px}
 }
 @media (max-width:560px){
-  /* Five pages will not sit beside the wordmark on a phone, so the bar becomes
-     two rows rather than overlapping itself. */
-  :root{--pad:14px;--bar:104px}
-  .top{height:var(--bar);flex-direction:column;align-items:flex-start;
-       justify-content:center;gap:2px}
-  .top nav{width:100%;justify-content:space-between;gap:0}
-  .brand{letter-spacing:.14em;gap:7px;min-height:34px}
-  .top nav a{font-size:12px;padding:8px 0;min-height:34px}
-  .top nav a::after{bottom:6px}
+  /* Five pages and the wordmark will not share one row on a phone, and two rows
+     cost a sixth of the screen. The X alone holds the corner; the word stays for
+     screen readers. */
+  :root{--pad:14px;--bar:52px}
+  .top{height:var(--bar);padding:0 14px;gap:12px}
+  .top nav{flex:1;justify-content:space-between;gap:0}
+  .brand{flex:none;min-height:44px}
+  .brand span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .top nav a{font-size:12px;padding:0;min-height:44px}
   .ask{max-width:none}
   /* a prompt runs to two lines here rather than being cut off mid-word */
   .ask{align-items:flex-start}
@@ -649,10 +681,21 @@ a.half:hover .ic2{color:var(--acc-lo);translate:0 -5px;
   html.loose{scroll-snap-type:y proximity}
   .card{scroll-snap-align:start;scroll-snap-stop:always}
   html.loose .card{scroll-snap-stop:normal}
-  /* Scrolling freely, two cards share the screen; the one you just read
-     should not fade back out under your thumb. */
-  html.loose .card.seen .said > *,html.loose .card.seen .viz{opacity:1;translate:0 0}
+  /* a swipe during the splash would land you on a card you never saw arrive */
+  html.splash,.splash body{overflow:hidden}
 }
+
+/* ── where you are ──────────────────────────────────────────────────────
+   One diamond per section, down the edge, so it is plain that there is more below
+   and how much. It only reports: the screen is what you swipe. */
+.rail{position:fixed;z-index:4;right:clamp(5px,1vw,18px);top:calc((100svh + var(--bar)) / 2);
+  translate:0 -50%;display:flex;flex-direction:column;gap:9px;pointer-events:none;
+  transition:opacity var(--t-mid) var(--ease)}
+.rail i{display:block;width:6px;height:6px;background:var(--faint);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+  transition:background var(--t-mid) var(--ease),scale var(--t-mid) var(--ease)}
+.rail i.on{background:var(--ink);scale:1.5}
+.splash .rail{opacity:0}
 
 @media (prefers-reduced-motion:reduce){
   /* one iteration, or the endless loops run every millisecond and flicker */
