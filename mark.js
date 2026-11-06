@@ -103,9 +103,13 @@ function nearest(r, g, b) {
   return best;
 }
 
+/* Parsed once. The marks repaint every frame, and building a fresh Path2D from
+   the string each time re-parsed the whole lockup sixty times a second. */
+var PARSED = {};
+function path(d) { return PARSED[d] || (PARSED[d] = new Path2D(d)); }
 function fillPaths(g, list, colour) {
   g.fillStyle = colour;
-  for (var i = 0; i < list.length; i++) g.fill(new Path2D(list[i]));
+  for (var i = 0; i < list.length; i++) g.fill(path(list[i]));
 }
 /* his centre diamond, scaled up: half-diagonal 410 becomes 900 on the 3000 grid */
 function bigDiamond() {
@@ -159,7 +163,7 @@ function paintPiece(g, p, k) {
   if (k <= 0.002) return;
   g.save();
   g.translate(p.cx, p.cy); g.scale(k, k); g.translate(-p.cx, -p.cy);
-  g.fillStyle = p.col; g.fill(new Path2D(p.d));
+  g.fillStyle = p.col; g.fill(path(p.d));
   g.restore();
 }
 /* u: 0 is the plain green X, 1 is Mashmoom */
@@ -199,7 +203,7 @@ var FORMS = {
   word: { w: 10373, h: 3000, paint: function (g) { fillPaths(g, WORD, '#498E82'); } },
 
   slot: { w: 3000, h: 3000, paint: function (g) {
-        g.strokeStyle = '#498E82'; g.lineWidth = 150; g.stroke(new Path2D(bigDiamond())); } },
+        g.strokeStyle = '#498E82'; g.lineWidth = 150; g.stroke(path(bigDiamond())); } },
 
   dot: { w: 3000, h: 3000, paint: function (g) { fillPaths(g, [bigDiamond()], '#498E82'); } },
 
@@ -250,9 +254,9 @@ var FORMS = {
      mark on this site. */
   plate: { w: 3000, h: 3000, dust: true, paint: function (g) {
         g.strokeStyle = '#498E82'; g.lineWidth = 150; g.lineJoin = 'miter';
-        g.stroke(new Path2D('M300 860H2700V2140H300Z'));
+        g.stroke(path('M300 860H2700V2140H300Z'));
         g.lineWidth = 100;
-        g.stroke(new Path2D('M760 1680H2240')); } },
+        g.stroke(path('M760 1680H2240')); } },
 
   /* ── the work ─────────────────────────────────────────────────────────
      Six more formations, one for each kind of work Mashmoom takes on. Reaching
@@ -361,14 +365,20 @@ SNAPS.forEach(function (k) {
    Rasterise a formation at its own aspect, then return points in a unit box
    whose LONG side spans 1, so a square mark and a wide wordmark can share one
    scale. Colour comes from the pixel, so every mark keeps its real colours. */
-function sampleForm(form, STEP) {
-  var long = 460;
-  var cw = form.w >= form.h ? long : Math.round(long * form.w / form.h);
-  var ch = form.w >= form.h ? Math.round(long * form.h / form.w) : long;
+var LONG = 460;
+/* Drawn and read back once per formation. Every try at a grid step used to draw
+   it again, which at nine tries and twenty formations was 180 GPU readbacks on
+   the main thread: three quarters of a second of frozen phone. */
+function rasterise(form) {
+  var cw = form.w >= form.h ? LONG : Math.round(LONG * form.w / form.h);
+  var ch = form.w >= form.h ? Math.round(LONG * form.h / form.w) : LONG;
   var c = document.createElement('canvas'); c.width = cw; c.height = ch;
-  var g = c.getContext('2d');
+  var g = c.getContext('2d', { willReadFrequently: true });
   g.save(); g.scale(cw / form.w, ch / form.h); form.paint(g); g.restore();
-  var d = g.getImageData(0, 0, cw, ch).data, pts = [], col = [];
+  return { d: g.getImageData(0, 0, cw, ch).data, cw: cw, ch: ch };
+}
+function sampleForm(ras, STEP) {
+  var long = LONG, cw = ras.cw, ch = ras.ch, d = ras.d, pts = [], col = [];
   for (var y = 0; y < ch; y += STEP) for (var x = 0; x < cw; x += STEP) {
     var o = (y * cw + x) * 4;
     /* The knockout is painted, not absent, so it is opaque cream. Alpha alone
@@ -382,10 +392,10 @@ function sampleForm(form, STEP) {
   return { pts: pts, col: col, n: col.length, pitch: STEP / long };
 }
 function fitForm(form, want) {
-  var lo = 2, hi = 26, best = null;
+  var lo = 2, hi = 26, best = null, ras = rasterise(form);
   for (var i = 0; i < 9; i++) {
     var mid = Math.max(1, Math.round((lo + hi) / 2));
-    var r = sampleForm(form, mid);
+    var r = sampleForm(ras, mid);
     if (!best || Math.abs(r.n - want) < Math.abs(best.n - want)) best = r;
     if (r.n > want) lo = mid; else hi = mid;
   }
@@ -433,28 +443,38 @@ function orderAndThin(raw, N) {
    array is padded by repeating, which costs a little overdraw and nothing
    else. */
 function latticeSet(raw, N) {
-  var out = { pts: new Float32Array(N * 2), col: new Uint8Array(N), pitch: raw.pitch };
+  var out = { pts: new Float32Array(N * 2), col: new Uint8Array(N), pitch: raw.pitch,
+              rep: new Uint8Array(N), restA: DOTA };
   if (!raw.n) return out;
   /* Taken straight from dust.js: walk the raw lattice in the order it was
      sampled and step evenly through it. Sorting by Morton code first, which is
      what this used to do, scrambles a regular grid into clumps and holes. */
-  var step = raw.n / N;
+  var step = raw.n / N, last = -1;
   for (var i = 0; i < N; i++) {
     var k = Math.min(raw.n - 1, Math.floor(i * step));
     out.pts[i*2] = raw.pts[k*2]; out.pts[i*2+1] = raw.pts[k*2+1];
     out.col[i] = raw.col[k];
+    out.rep[i] = k === last ? 1 : 0;
+    last = k;
   }
+  /* Padded like this, each cell is stacked about three times over. At rest the
+     copies sit on top of each other, so drawDust paints each cell once at the
+     strength the stack adds up to: the same picture for a third of the work. The
+     copies only matter in a morph, where they travel apart and the draw loop
+     crosses from one to the other at each end of the travel. */
+  if (step < 1) out.restA = 1 - Math.pow(1 - DOTA, 1 / step);
   return out;
 }
 
 /* ── state ──────────────────────────────────────────────────────────────── */
-var W = 0, H = 0, DPR = 1, raf = 0, t = 0, tPrev = 0, N = 0;
+var W = 0, H = 0, DPR = 1, raf = 0, t = 0, tPrev = 0, N = 0, countW = 0;
 var SET = {}, PITCH = 0.02;
-var BUF = [], CNT = [], swirl, driftp, mag, ang;
+var BUF = [], CNT = [], BUF2 = [], CNT2 = [], swirl, driftp, mag, ang;
 var mx = -9e9, my = -9e9, pxo = 0, pyo = 0;
 
 var INTROFORM = cv.dataset.form || 'x';
 var atLanding = false;   /* the landing lets the mark own the page */
+var landK = 0;           /* the same thing, eased: 1 on the landing, 0 off it */
 var from = INTROFORM, to = from, hover = null;
 var mix = 1;                 /* 0 at the start of a morph, 1 when it has landed */
 /* The splash and the particle entrance are separate things now. The entrance
@@ -472,7 +492,9 @@ var introT = 0;
 
    Three beats, 1.5 seconds, and then it is out of the way. */
 var splash = cv.dataset.splash === 'true' && !reduced;
-var splashT = 0, splashT0 = 0, introT0 = 0;
+var splashT = 0, splashClock = 0, introT0 = 0;
+/* the breath eases back in after the splash, which ends dead still */
+var calm = 1;
 /* On the clock, not on the frame count. Page load is exactly when frames are
    slow and irregular, and a per-frame step with dt capped at 50ms ran the
    whole splash in a third of a second on a cold load: the letters never
@@ -516,52 +538,106 @@ function build() {
   cv.width = W * DPR; cv.height = H * DPR;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  N = W > 900 ? 2300 : (W > 520 ? 1300 : 760);
-  for (var key in FORMS) {
-    if (FORMS[key].snap) continue;    /* a capture, not a mark: nothing to sample */
-    /* A shape held as diamonds wants far fewer cells than a shape being
-       morphed. At the morph count the grid was finer than the diamonds and
-       they fused into a solid fuzzy band instead of reading as a lattice. */
-    var fit = fitForm(FORMS[key], FORMS[key].dust ? Math.round(N * 0.3) : N);
-    /* A formation that samples to nothing puts every diamond on the origin and
-       the mark collapses to a single dot in the middle of the stage. That is
-       what Bahrain did on the three pages that peek it in the navigation
-       without loading the coastline. Both ends are fixed, this one so the mark
-       can never vanish for a reason as ordinary as a file not being there. */
-    SET[key] = fit.n ? (FORMS[key].dust ? latticeSet(fit, N) : orderAndThin(fit, N)) : null;
+  /* The formations live in unit space, so they only depend on the count. A
+     resize that keeps it, which is nearly all of them, resamples nothing. */
+  /* Chosen once per screen width. The stage box changes card to card and mid
+     transition, and picking from it on a resize that only moved the height threw
+     away every formation for nothing. */
+  var count = N && innerWidth === countW ? N : (W > 900 ? 2300 : (W > 520 ? 1300 : 760));
+  countW = innerWidth;
+  if (count !== N) {
+    N = count;
+    SET = {};
+    sampleSet('x');
+    SNAPS.forEach(function (k) {
+      SET[k] = { pts: new Float32Array(N * 2), col: new Uint8Array(N),
+                 pitch: SET.x.pitch };
+    });
+    swirl = new Float32Array(N); driftp = new Float32Array(N);
+    mag = new Float32Array(N); ang = new Float32Array(N);
+    for (var i = 0; i < N; i++) {
+      swirl[i] = ((i * 2654435761) % 1000) / 1000 - 0.5;
+      driftp[i] = (i * 97) % 256;
+      /* a wide spread of throw distances, so a good share barely moves and the
+         cloud never hollows out in the middle of a morph */
+      mag[i] = 0.12 + ((i * 40503) % 1000) / 1000 * 1.28;
+      ang[i] = ((i * 69621) % 1000) / 1000 * 6.283185;
+    }
+    BUF = []; CNT = [];
+    BUF2 = []; CNT2 = [];
+    for (var c = 0; c < PAL.length; c++) {
+      BUF.push(new Float32Array(N * 4)); CNT.push(0);
+      BUF2.push(new Float32Array(N * 4)); CNT2.push(0);
+    }
   }
-  /* anything blank falls back to the X, which is drawn from paths and is
-     therefore always there */
-  for (var kb in SET) if (!SET[kb]) SET[kb] = SET.x;
-  SNAPS.forEach(function (k) {
-    SET[k] = { pts: new Float32Array(N * 2), col: new Uint8Array(N),
-               pitch: SET.x.pitch };
-  });
   /* A capture is pinned to the scale it was taken at, and that scale belongs to
      the old viewport. Rather than carry it across a resize, the morph it
      belongs to is simply landed. */
   if (FORMS[from] && FORMS[from].snap) { from = to; mix = 1; }
-  PITCH = SET[INTROFORM] ? SET[INTROFORM].pitch : SET.x.pitch;
-
-  swirl = new Float32Array(N); driftp = new Float32Array(N);
-  mag = new Float32Array(N); ang = new Float32Array(N);
-  for (var i = 0; i < N; i++) {
-    swirl[i] = ((i * 2654435761) % 1000) / 1000 - 0.5;
-    driftp[i] = (i * 97) % 256;
-    /* a wide spread of throw distances, so a good share barely moves and the
-       cloud never hollows out in the middle of a morph */
-    mag[i] = 0.12 + ((i * 40503) % 1000) / 1000 * 1.28;
-    ang[i] = ((i * 69621) % 1000) / 1000 * 6.283185;
-  }
-  BUF = []; CNT = [];
-  for (var c = 0; c < PAL.length; c++) { BUF.push(new Float32Array(N * 4)); CNT.push(0); }
+  sampleSet(INTROFORM); sampleSet(from); sampleSet(to);
+  PITCH = (SET[INTROFORM] || SET.x).pitch;
+  sampleLater();
   fieldBuild();
+  fieldTick = 0;    /* the field was just cleared; the next frame has to repaint it */
 }
 
-/* The Arabic formation is real type, so it cannot be sampled until the face is
-   actually loaded. Without this it samples the fallback serif, or nothing. */
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(function () { if (W) build(); });
+/* Only what is on screen is sampled up front. The rest follow one at a time when
+   the page is idle, and never while the mark is moving: nothing here is allowed
+   to take a frame from the splash or a morph. Anything asked for before its turn
+   is sampled on the spot by morphTo. */
+function sampleSet(key) {
+  if (SET[key] || !FORMS[key] || FORMS[key].snap) return;
+  /* A shape held as diamonds wants far fewer cells than a shape being
+     morphed. At the morph count the grid was finer than the diamonds and
+     they fused into a solid fuzzy band instead of reading as a lattice. */
+  var f = FORMS[key], fit = fitForm(f, f.dust ? Math.round(N * 0.3) : N);
+  /* A formation that samples to nothing puts every diamond on the origin and
+     the mark collapses to a single dot in the middle of the stage. That is
+     what Bahrain did on the three pages that peek it in the navigation
+     without loading the coastline. Both ends are fixed, this one so the mark
+     can never vanish for a reason as ordinary as a file not being there: it
+     falls back to the X, which is drawn from paths and is always there. */
+  if (fit.n || key === 'x') SET[key] = f.dust ? latticeSet(fit, N) : orderAndThin(fit, N);
+  else { sampleSet('x'); SET[key] = SET.x; }
+}
+var sampling = 0;
+function whenIdle(fn) {
+  if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 600 });
+  else setTimeout(fn, 120);
+}
+function sampleLater() {
+  if (sampling) return;
+  sampling = 1;
+  whenIdle(function next() {
+    if (splash || mix < 1) { setTimeout(function () { whenIdle(next); }, 200); return; }
+    for (var key in FORMS) {
+      if (!SET[key] && !FORMS[key].snap) {
+        sampleSet(key);
+        whenIdle(next);
+        return;
+      }
+    }
+    sampling = 0;
+  });
+}
+
+/* The written formations are real type, so they cannot be sampled until the face
+   is actually loaded. Without this they sample the fallback serif, or nothing.
+   Only those two are redone when it arrives; redoing everything froze the phone
+   a second time, in the middle of the splash. */
+if (document.fonts && document.fonts.load) {
+  var textReady = function () {
+    if (!N) return;
+    ['arabic', 'addr'].forEach(function (k) {
+      if (!SET[k]) return;
+      delete SET[k];
+      if (k === from || k === to || k === INTROFORM) sampleSet(k);
+    });
+    sampleLater();
+  };
+  /* each on its own: one face failing must not stop the other being picked up */
+  document.fonts.load('600 720px PlexAr', 'بحريني').then(textReady, textReady);
+  document.fonts.load('600 560px Switzer', 'axis.bh').then(textReady, textReady);
 }
 
 /* No ratio is assumed. Screens are 16:9, 16:10, 3:2 and wider, and a hard
@@ -588,8 +664,10 @@ function scale(key) {
      inner ceiling it came out 700px wide on a 1920 display, with a slab of
      nothing between the lockup and the line underneath it that grew with the
      monitor. The landing gets its own, much higher ceiling. */
-  var top = atLanding ? 420 + Math.min(W / dw, H / dh) * 0.52
-                      : 300 + Math.min(W / dw, H / dh) * 0.30;
+  /* landK eases between the two, or leaving the landing on anything wider than a
+     phone made the lockup jump a size in the first frame of the morph */
+  var room = Math.min(W / dw, H / dh);
+  var top = (300 + room * 0.30) + (120 + room * 0.22) * landK;
   var cap = Math.min(fit, top);
   /* boost lets a wide short form take more of the column; it may push past the
      ceiling but never past the box, or the form is cropped by the canvas */
@@ -753,6 +831,7 @@ function drawDust(key, s, tl, ox, oy) {
   var P = A.pitch * s;
   var rBase = dotR(A.pitch, s);
   for (i = 0; i < N; i++) {
+    if (A.rep && A.rep[i]) continue;
     var ax = A.pts[i*2], ay = A.pts[i*2+1];
     var x = ox + (ax * ca - ay * sa) * s;
     var y = oy + (ax * sa + ay * ca) * s;
@@ -770,7 +849,7 @@ function drawDust(key, s, tl, ox, oy) {
     var b = BUF[c], n = CNT[c];
     b[n++] = x; b[n++] = y; b[n++] = rBase; b[n++] = 0; CNT[c] = n;
   }
-  for (z = 0; z < BUF.length; z++) blot(BUF[z], CNT[z], PALCSS[z], DOTA);
+  for (z = 0; z < BUF.length; z++) blot(BUF[z], CNT[z], PALCSS[z], A.restA || DOTA);
 }
 
 /* measured against the sampled lattice, which is the only honest answer for a
@@ -824,6 +903,7 @@ function capture() {
 }
 function morphTo(key, quiet) {
   if (!FORMS[key] || key === to) return;
+  sampleSet(key);
   if (quiet || mix >= 1) {
     from = to;
   } else if (isAdd(from, to)) {
@@ -1015,6 +1095,8 @@ function mixRGB(r1, g1, b1, r2, g2, b2, t) {
                   Math.round(g1 + (g2 - g1) * t) + ',' +
                   Math.round(b1 + (b2 - b1) * t) + ')';
 }
+/* the same query as the band layout in site.css */
+var bandMQ = matchMedia('(max-width:900px) and (orientation:portrait),(max-width:900px) and (min-height:501px)');
 /* the small viewport height (URL bar showing), which is what the CSS band is
    sized in; innerHeight grows when the bar hides and the mark landed too big */
 var probe = null;
@@ -1032,12 +1114,16 @@ function landingBox() {
   var r = dk.getBoundingClientRect(), bh = tb.getBoundingClientRect().height;
   /* the phone puts the mark in a full-width band under the bar instead of
      giving it the middle of the page, so the target is a different box */
-  var narrow = innerWidth <= 900;
+  var narrow = bandMQ.matches;
   var lw = narrow ? innerWidth : r.width;
-  var lh = narrow ? svh() * 0.28 : innerHeight * 0.56 - bh;
+  /* less the band's 1px border, which the canvas sits inside: without it the
+     lockup dropped half a pixel the moment the splash handed it over */
+  var lh = narrow ? svh() * 0.28 - 1 : innerHeight * 0.56 - bh;
   if (!(lw > 0) || !(lh > 0)) return null;
   var f = FORMS.word, dw = 1, dh = f.h / f.w;
-  var fit = Math.min(lw * 0.96 / dw, lh * 0.92 / dh);
+  /* the same fit scale() will use at rest, or a short landscape band resized the
+     lockup the moment the splash let go of it */
+  var fit = Math.min(lw * 0.96 / dw, lh * (lh < 360 ? 0.80 : 0.92) / dh);
   var top = 420 + Math.min(lw / dw, lh / dh) * 0.52;
   return { cx: narrow ? lw / 2 : r.left + lw / 2, cy: bh + lh / 2,
            s: Math.min(fit, top) };
@@ -1047,20 +1133,28 @@ function fitCanvas() {
   var box = cv.getBoundingClientRect();
   var w = Math.max(1, box.width), h = Math.max(1, box.height);
   if (Math.abs(w - W) < 0.5 && Math.abs(h - H) < 0.5) return;
-  W = w; H = h;
+  W = w; H = h; BW = W; BH = H;
   cv.width = W * DPR; cv.height = H * DPR;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 
 function draw(ts) {
-  var dt = tPrev ? Math.min(50, ts - tPrev) : 16.7; tPrev = ts;
+  var rawDt = tPrev ? ts - tPrev : 16.7;
+  var dt = Math.min(50, rawDt); tPrev = ts;
   var k = dt / 16.7;
   /* The whole canvas runs off this clock, so one number sets the pace of the
      drift, the breath, the wave in the field and the sweep across it. It was
      too quick to sit in front of. */
   t += 0.44 * k;
   fitCanvas();
-  fieldDraw();
+  /* The field is a slow wash of small shapes and nothing about it needs sixty
+     updates a second. On a phone that half goes to the mark instead. */
+  fieldTick++;
+  if (!coarse || fieldTick % 2) fieldDraw();
+  var landWant = atLanding ? 1 : 0;
+  landK += (landWant - landK) * Math.min(1, 0.11 * k);
+  if (Math.abs(landWant - landK) < 0.002) landK = landWant;
+  if (calm < 1) calm = Math.min(1, calm + dt / 900);
 
   /* is the hand on the mark, and has the shine been fired */
   var sNow = scale(to);
@@ -1082,8 +1176,10 @@ function draw(ts) {
   if (!want) { shineWait = 0; if (shineT >= 0 && shineT < 0.02) shineT = -1; }
 
   if (splash) {
-    if (!splashT0) splashT0 = ts;
-    splashT = Math.min(1, (ts - splashT0) / SPLASH_MS);
+    /* Still on the clock, but a frame that stalls only costs its own time: a
+       hitch on a cold load pauses the mark rather than teleporting it ahead. */
+    splashClock += Math.min(100, rawDt);
+    splashT = Math.min(1, splashClock / SPLASH_MS);
     /* the green and the page cross over during the cast, on CSS transitions,
        so neither of them is a step */
     if (splashT >= 0.62) document.documentElement.classList.add('cast');
@@ -1100,6 +1196,11 @@ function draw(ts) {
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { de.classList.remove('justland'); });
       });
+      /* This frame paints into the landing box, not the splash's. Left to the
+         next frame, the full-screen bitmap was squashed into the phone's band
+         for one frame, which read as the lockup flinching on arrival. */
+      fitCanvas();
+      calm = 0;
       relayout();
       setTimeout(relayout, 400);
     }
@@ -1120,10 +1221,17 @@ function draw(ts) {
     }
   }
 
+  /* A card that brings its own visual has faded the stage out. Once it is gone
+     and the mark has landed there is nothing to paint for. */
+  if (stageOff && !splash && mix >= 1 && ts - stageOffAt > 400) {
+    raf = requestAnimationFrame(draw);
+    return;
+  }
+
   ctx.clearRect(0, 0, W, H);
   var s0 = scale(to), cx = W / 2, cy = H / 2;
-  var breath = reduced ? 1 : 1 + Math.sin(t * 0.0115) * 0.0075;
-  var tilt = reduced ? 0 : Math.sin(t * 0.0083) * 0.0052;
+  var breath = reduced ? 1 : 1 + Math.sin(t * 0.0115) * 0.0075 * calm;
+  var tilt = reduced ? 0 : Math.sin(t * 0.0083) * 0.0052 * calm;
   /* The mark does not follow the pointer around. It used to lean toward it,
      then away from it, and both were the logo moving with the mouse. */
   pxo += (0 - pxo) * Math.min(1, 0.06 * k);
@@ -1340,8 +1448,19 @@ function draw(ts) {
   ctx.restore();
 
   if (dust > 0.004) {
-    for (var z = 0; z < CNT.length; z++) CNT[z] = 0;
+    for (var z = 0; z < CNT.length; z++) { CNT[z] = 0; CNT2[z] = 0; }
     var Af = SET[from], Bf = SET[to];
+    /* The cloud has to be the same picture drawDust paints at rest: same tilt,
+       same drift, same alpha. It was none of those, so every morph into a shape
+       held as diamonds ended by jolting a couple of pixels and dimming at once. */
+    var cT = Math.cos(tilt), sT = Math.sin(tilt);
+    /* At rest a shape held as diamonds paints each cell once, not its stacked
+       copies. Near that end of the travel the copies fade out as the single cells
+       strengthen, so the last frame of the morph is the first frame of the rest. */
+    var endS = M < 0.5 ? Af : Bf, rep = endS.rep;
+    var w = !rep ? 0 : (M < 0.5 ? 1 - step3(0, 0.15, M) : step3(0.85, 1, M));
+    var aOne = dust * (DOTA + ((endS.restA || DOTA) - DOTA) * w);
+    var aCopy = dust * DOTA * (1 - w);
     for (var i = 0; i < N; i++) {
       var e = legPhase(i, M);
       /* each mark samples at its own lattice spacing, so the diamond size
@@ -1350,10 +1469,10 @@ function draw(ts) {
       var ax = Af.pts[i*2], ay = Af.pts[i*2+1];
       var bx = Bf.pts[i*2], by = Bf.pts[i*2+1];
       var fx2 = ax + (bx - ax) * e, fy2 = ay + (by - ay) * e;
-      var x2 = cx + pxo + fx2 * s, y2 = cy + pyo + fy2 * s;
+      var x2 = cx + pxo + (fx2 * cT - fy2 * sT) * s, y2 = cy + pyo + (fx2 * sT + fy2 * cT) * s;
       if (!reduced) {
         var ph = (driftp[i] + t) & 255;
-        x2 += Math.sin(ph / 256 * 6.283) * 0.5; y2 += Math.sin(((ph + 64) & 255) / 256 * 6.283) * 0.5;
+        x2 += Math.sin(ph / 256 * 6.283) * 0.26; y2 += Math.sin(((ph + 64) & 255) / 256 * 6.283) * 0.26;
       }
       if (mx > -9e8) {
         var ndx = x2 - mx, ndy = y2 - my;
@@ -1363,10 +1482,18 @@ function draw(ts) {
       }
       var r2 = dotR(pitchNow, s);
       var c2 = e < 0.5 ? Af.col[i] : Bf.col[i];   /* takes its new colour as it crosses */
-      var b2 = BUF[c2], n2 = CNT[c2];
-      b2[n2++] = x2; b2[n2++] = y2; b2[n2++] = r2; b2[n2++] = 0; CNT[c2] = n2;
+      if (rep && rep[i]) {
+        var b4 = BUF2[c2], n4 = CNT2[c2];
+        b4[n4++] = x2; b4[n4++] = y2; b4[n4++] = r2; b4[n4++] = 0; CNT2[c2] = n4;
+      } else {
+        var b2 = BUF[c2], n2 = CNT[c2];
+        b2[n2++] = x2; b2[n2++] = y2; b2[n2++] = r2; b2[n2++] = 0; CNT[c2] = n2;
+      }
     }
-    for (var c3 = 0; c3 < BUF.length; c3++) blot(BUF[c3], CNT[c3], PALCSS[c3], dust);
+    for (var c3 = 0; c3 < BUF.length; c3++) {
+      blot(BUF2[c3], CNT2[c3], PALCSS[c3], aCopy);
+      blot(BUF[c3], CNT[c3], PALCSS[c3], aOne);
+    }
   }
 
   raf = requestAnimationFrame(draw);
@@ -1534,6 +1661,12 @@ function typeOut(card) {
   var card = wall.closest ? wall.closest('.card') : null;
   var i = 0, held = -1, iv = 0;
   function onCard() { return !card || card === liveCard; }
+  function walk() {
+    clearInterval(iv);
+    iv = setInterval(function () {
+      if (held < 0 && onCard()) pick((i + 1) % words.length);
+    }, 2700);
+  }
   function pick(n, byHand) {
     i = n;
     words.forEach(function (w, k) { w.classList.toggle('on', k === i); });
@@ -1544,14 +1677,22 @@ function typeOut(card) {
   }
   pick(0);
   words.forEach(function (w, n) {
-    w.addEventListener('pointerenter', function () { held = n; pick(n, 1); });
-    w.addEventListener('focus', function () { held = n; pick(n, 1); });
+    w.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'touch') { held = n; pick(n, 1); }
+    });
+    w.addEventListener('focus', function () {
+      if (w.matches(':focus-visible')) { held = n; pick(n, 1); }
+    });
+    /* A tap is a choice, not a hover. It shows that word and gives it the full
+       beat before the walk moves on. */
+    w.addEventListener('click', function () {
+      pick(n);
+      if (!reduced) walk();
+    });
   });
   wall.addEventListener('pointerleave', function () { held = -1; });
   if (reduced) return;
-  iv = setInterval(function () {
-    if (held < 0 && onCard()) pick((i + 1) % words.length);
-  }, 2700);
+  walk();
 })();
 
 /* ── THE BAR ────────────────────────────────────────────────────────────
@@ -1583,10 +1724,10 @@ function typeOut(card) {
   }
   function go(el) { target = el; if (!raf5) raf5 = requestAnimationFrame(run); }
   items.forEach(function (a) {
-    a.addEventListener('pointerenter', function () { go(a); });
-    a.addEventListener('focus', function () { go(a); });
+    a.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') go(a); });
+    a.addEventListener('focus', function () { if (a.matches(':focus-visible')) go(a); });
   });
-  nav.addEventListener('pointerleave', function () { go(home); });
+  nav.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') go(home); });
   go(home);
   addEventListener('resize', function () { at = null; go(target); }, { passive: true });
 })();
@@ -1664,16 +1805,21 @@ function typeOut(card) {
 /* ── the cards drive the mark ───────────────────────────────────────────── */
 var cards = [].slice.call(document.querySelectorAll('.card[data-form]'));
 var label = document.querySelector('[data-settle]');
-var liveCard = null;
+var liveCard = null, stageOff = false, stageOffAt = 0, fieldTick = 0;
 function applyCard(el, quiet) {
   if (!el || el === liveCard) return;
-  liveCard = el;
   /* the landing holds the mark in the middle of the page; every card after it
      hands the mark over to the right column, and the move is the transition */
+  var firstCard = !liveCard;
+  liveCard = el;
   atLanding = el.classList.contains('landing');
+  if (firstCard) landK = atLanding ? 1 : 0;   /* a page opens at its size, it does not ease into it */
   document.documentElement.classList.toggle('at-landing', atLanding);
   /* a card that brings its own visual takes the right column from the mark */
-  document.documentElement.classList.toggle('stage-off', el.dataset.stage === 'off');
+  var off = el.dataset.stage === 'off';
+  if (off && !stageOff) stageOffAt = performance.now();
+  stageOff = off;
+  document.documentElement.classList.toggle('stage-off', off);
   typeOut(el);
   /* Scrolling while a navigation item is being hovered: the peek keeps the
      frame, and what it hands back is the mark the new card asked for. */
@@ -1694,11 +1840,11 @@ function applyCard(el, quiet) {
    that scrolls on its own then that scroll belongs to it. */
 var loose = false;
 /* re-measure everything that was baked at a moment the layout was not final */
-var relayout = function () {};
+var relayout = function () { snapGuard(); };
 /* How much is covering the top of the page. On a wide screen that is just the
    bar; on a phone the mark sits in a band under it, and scrolling a card to the
    bar alone hid its first third behind that band. */
-function headroom() {
+function headroom(card) {
   var bar = document.querySelector('.top');
   var h = bar ? bar.getBoundingClientRect().height : 0;
   /* The band only exists in the phone layout, so that is the only place to go
@@ -1707,21 +1853,26 @@ function headroom() {
      as the full viewport, every card measured as taller than the room it had,
      the page fell into free scrolling and the observer's root collapsed to a
      strip nothing could ever intersect. The home page stopped advancing its
-     cards entirely. */
+     cards entirely.
+
+     Asked about a particular card, the answer is that card's: one with its own
+     visual fades the band out and has the room to itself. */
   var st = document.querySelector('.stage');
-  if (st && innerWidth <= 900 &&
-      !document.documentElement.classList.contains('stage-off') &&
+  if (st && bandMQ.matches && !(card && card.dataset.stage === 'off') &&
       !document.documentElement.classList.contains('splash')) {
-    var r = st.getBoundingClientRect();
-    if (r.top <= h + 2) h = r.bottom;
+    h += st.getBoundingClientRect().height;
   }
   return h;
 }
 function snapGuard() {
   if (!cards.length) return;
-  var room = innerHeight - headroom();
+  /* Measured against the small viewport on a phone, like the cards themselves.
+     innerHeight grows when the URL bar hides, so a card that only just fitted
+     flipped the whole page between snapping and free scrolling mid-swipe. */
+  var screen = bandMQ.matches ? svh() : innerHeight;
   var tall = false;
   cards.forEach(function (c) {
+    var room = screen - headroom(c);
     /* every child, not just the words: on a phone the card's visual stacks
        under them, and counting only the first left a tall card snapping */
     var top = Infinity, bot = -Infinity;
@@ -1742,7 +1893,7 @@ function cardIndex() {
 }
 function goTo(i) {
   i = Math.max(0, Math.min(cards.length - 1, i));
-  var y = cards[i].getBoundingClientRect().top + (scrollY || pageYOffset) - headroom();
+  var y = cards[i].getBoundingClientRect().top + (scrollY || pageYOffset) - headroom(cards[i]);
   scrollTo({ top: Math.max(0, Math.round(y)), behavior: reduced ? 'auto' : 'smooth' });
   applyCard(cards[i]);
 }
@@ -1812,11 +1963,26 @@ if ('IntersectionObserver' in window) {
      leaving win. And the top of the window is discounted by the headroom, so
      the part of a card hidden behind the bar and the mark band does not count
      as being in front of you. */
-  var ratio = new Map(), cardIO = null;
+  var ratio = new Map(), cardIO = null, ioRoom = null;
   function watchCards() {
+    /* the URL bar fires resize constantly and rarely changes this */
+    var margin = Math.round(headroom());
+    if (cardIO && margin === ioRoom) return;
+    ioRoom = margin;
     if (cardIO) cardIO.disconnect();
     cardIO = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { ratio.set(en.target, en.intersectionRatio); });
+      entries.forEach(function (en) {
+        /* How much of the room it fills, or of itself if it is the smaller. Its
+           share of itself alone never reaches the bar on a card much taller than
+           the screen, so a long card on a phone could never go live. */
+        var room = en.rootBounds ? en.rootBounds.height : innerHeight;
+        var v = en.intersectionRect.height /
+                Math.max(1, Math.min(en.boundingClientRect.height, room));
+        ratio.set(en.target, v);
+        /* scrolling freely, the next card is on screen long before it is live
+           and should not sit there blank until it is */
+        if (loose && v > 0.08) en.target.classList.add('seen');
+      });
       /* A smooth scroll passes through every card between here and there, and
          the observer fired for each one: the mark morphed two or three times
          per notch and the headlines re-ran their entrance halfway through.
@@ -1826,7 +1992,8 @@ if ('IntersectionObserver' in window) {
       var best = null, bv = 0;
       cards.forEach(function (c) { var v = ratio.get(c) || 0; if (v > bv) { bv = v; best = c; } });
       if (best && bv > 0.45) applyCard(best);
-    }, { threshold: [0, 0.25, 0.45, 0.65, 0.9, 1], rootMargin: (-Math.round(headroom())) + 'px 0px 0px 0px' });
+    }, { threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.9, 1],
+         rootMargin: (-margin) + 'px 0px 0px 0px' });
     cards.forEach(function (c) { cardIO.observe(c); });
   }
   if (cards.length) watchCards();
@@ -1864,8 +2031,13 @@ function peekBack() {
     clearTimeout(backTo);
     backTo = setTimeout(peekBack, 90);
   }
-  a.addEventListener('pointerenter', on); a.addEventListener('pointerleave', off);
-  a.addEventListener('focus', on); a.addEventListener('blur', off);
+  /* A finger has no hover. A tap fired enter and leave 90ms apart, so the mark
+     set off toward the peek and turned straight back: the flicker on every nav
+     link and wall word. Keyboard focus still peeks, a tap's focus does not. */
+  a.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') on(); });
+  a.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') off(); });
+  a.addEventListener('focus', function () { if (a.matches(':focus-visible')) on(); });
+  a.addEventListener('blur', off);
 });
 
 addEventListener('pointermove', function (e) {
@@ -1890,9 +2062,11 @@ addEventListener('resize', function () {
       (!fb || Math.abs(Math.round(fb.height) - FH) < 2);
     lastW = innerWidth;
     if (!still) build();
-    snapGuard();
-    /* the headroom changes with the layout, and it is baked into the observer */
-    if (typeof watchCards === 'function') watchCards();
+    /* The headroom changes with the layout, and it is baked into the observer.
+       This has to go through relayout: watchCards is scoped to the block it was
+       declared in, so a typeof check from out here never found it and a rotated
+       phone kept the old margin. */
+    relayout();
   }, 140);
 }, { passive: true });
 document.addEventListener('visibilitychange', function () {
@@ -1909,6 +2083,7 @@ if (carried && cameFrom !== location.pathname && carried !== to) {
      across, so the logo is the one thing that does not reload. No splash
      either — it is an arrival, not a return, and sitting through it again
      every time you click Home would be a toll booth. */
+  sampleSet(carried);
   intro = false; splash = false; from = carried; mix = 0;
 } else if (intro) {
   /* The entrance paints whatever formation the canvas declares, so `to` has to
@@ -1920,11 +2095,15 @@ if (carried && cameFrom !== location.pathname && carried !== to) {
   from = to = INTROFORM;
 }
 if (splash) setTimeout(function () {
+  /* the clock only runs while frames do, so finish it rather than play the rest
+     of the splash inside the landing box */
+  if (splash) splashClock = SPLASH_MS;
   document.documentElement.classList.remove('splash');
 }, 4500);
 if (!splash) document.documentElement.classList.remove('splash');
 document.documentElement.classList.add('mark-live');
 raf = requestAnimationFrame(draw);
-snapGuard();
+/* the observer was first built with the splash class still on, band left out */
+relayout();
 addEventListener('load', snapGuard);
 })();
