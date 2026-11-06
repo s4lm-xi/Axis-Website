@@ -467,7 +467,7 @@ function latticeSet(raw, N) {
 }
 
 /* ── state ──────────────────────────────────────────────────────────────── */
-var W = 0, H = 0, DPR = 1, raf = 0, t = 0, tPrev = 0, N = 0;
+var W = 0, H = 0, DPR = 1, raf = 0, t = 0, tPrev = 0, N = 0, countW = 0;
 var SET = {}, PITCH = 0.02;
 var BUF = [], CNT = [], BUF2 = [], CNT2 = [], swirl, driftp, mag, ang;
 var mx = -9e9, my = -9e9, pxo = 0, pyo = 0;
@@ -540,7 +540,11 @@ function build() {
 
   /* The formations live in unit space, so they only depend on the count. A
      resize that keeps it, which is nearly all of them, resamples nothing. */
-  var count = W > 900 ? 2300 : (W > 520 ? 1300 : 760);
+  /* Chosen once per screen width. The stage box changes card to card and mid
+     transition, and picking from it on a resize that only moved the height threw
+     away every formation for nothing. */
+  var count = N && innerWidth === countW ? N : (W > 900 ? 2300 : (W > 520 ? 1300 : 760));
+  countW = innerWidth;
   if (count !== N) {
     N = count;
     SET = {};
@@ -574,6 +578,7 @@ function build() {
   PITCH = (SET[INTROFORM] || SET.x).pitch;
   sampleLater();
   fieldBuild();
+  fieldTick = 0;    /* the field was just cleared; the next frame has to repaint it */
 }
 
 /* Only what is on screen is sampled up front. The rest follow one at a time when
@@ -592,7 +597,7 @@ function sampleSet(key) {
      without loading the coastline. Both ends are fixed, this one so the mark
      can never vanish for a reason as ordinary as a file not being there: it
      falls back to the X, which is drawn from paths and is always there. */
-  if (fit.n) SET[key] = f.dust ? latticeSet(fit, N) : orderAndThin(fit, N);
+  if (fit.n || key === 'x') SET[key] = f.dust ? latticeSet(fit, N) : orderAndThin(fit, N);
   else { sampleSet('x'); SET[key] = SET.x; }
 }
 var sampling = 0;
@@ -630,9 +635,9 @@ if (document.fonts && document.fonts.load) {
     });
     sampleLater();
   };
-  Promise.all([document.fonts.load('600 720px PlexAr', 'بحريني'),
-               document.fonts.load('600 560px Switzer', 'axis.bh')])
-    .then(textReady, textReady);
+  /* each on its own: one face failing must not stop the other being picked up */
+  document.fonts.load('600 720px PlexAr', 'بحريني').then(textReady, textReady);
+  document.fonts.load('600 560px Switzer', 'axis.bh').then(textReady, textReady);
 }
 
 /* No ratio is assumed. Screens are 16:9, 16:10, 3:2 and wider, and a hard
@@ -1128,7 +1133,7 @@ function fitCanvas() {
   var box = cv.getBoundingClientRect();
   var w = Math.max(1, box.width), h = Math.max(1, box.height);
   if (Math.abs(w - W) < 0.5 && Math.abs(h - H) < 0.5) return;
-  W = w; H = h;
+  W = w; H = h; BW = W; BH = H;
   cv.width = W * DPR; cv.height = H * DPR;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
@@ -1835,7 +1840,7 @@ function applyCard(el, quiet) {
    that scrolls on its own then that scroll belongs to it. */
 var loose = false;
 /* re-measure everything that was baked at a moment the layout was not final */
-var relayout = function () {};
+var relayout = function () { snapGuard(); };
 /* How much is covering the top of the page. On a wide screen that is just the
    bar; on a phone the mark sits in a band under it, and scrolling a card to the
    bar alone hid its first third behind that band. */
@@ -2057,9 +2062,11 @@ addEventListener('resize', function () {
       (!fb || Math.abs(Math.round(fb.height) - FH) < 2);
     lastW = innerWidth;
     if (!still) build();
-    snapGuard();
-    /* the headroom changes with the layout, and it is baked into the observer */
-    if (typeof watchCards === 'function') watchCards();
+    /* The headroom changes with the layout, and it is baked into the observer.
+       This has to go through relayout: watchCards is scoped to the block it was
+       declared in, so a typeof check from out here never found it and a rotated
+       phone kept the old margin. */
+    relayout();
   }, 140);
 }, { passive: true });
 document.addEventListener('visibilitychange', function () {
@@ -2088,11 +2095,15 @@ if (carried && cameFrom !== location.pathname && carried !== to) {
   from = to = INTROFORM;
 }
 if (splash) setTimeout(function () {
+  /* the clock only runs while frames do, so finish it rather than play the rest
+     of the splash inside the landing box */
+  if (splash) splashClock = SPLASH_MS;
   document.documentElement.classList.remove('splash');
 }, 4500);
 if (!splash) document.documentElement.classList.remove('splash');
 document.documentElement.classList.add('mark-live');
 raf = requestAnimationFrame(draw);
-snapGuard();
+/* the observer was first built with the splash class still on, band left out */
+relayout();
 addEventListener('load', snapGuard);
 })();
